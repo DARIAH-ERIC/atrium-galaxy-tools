@@ -37,9 +37,63 @@
         },
         "1": {
             "annotation": "",
-            "content_id": "atrium_pdf_text_extraction",
+            "content_id": null,
             "errors": null,
             "id": 1,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "",
+                    "name": "GATE Cloud API Key"
+                }
+            ],
+            "label": "GATE Cloud API Key",
+            "name": "Input parameter",
+            "outputs": [],
+            "position": {
+                "left": 61.6666259765625,
+                "top": 336.6666259765625
+            },
+            "tool_id": null,
+            "tool_state": "{\"multiple\": false, \"validators\": [], \"parameter_type\": \"text\", \"optional\": true}",
+            "tool_version": null,
+            "type": "parameter_input",
+            "uuid": "66875c37-bf73-40b4-8060-71dc0e405f8f",
+            "when": null,
+            "workflow_outputs": []
+        },
+        "2": {
+            "annotation": "",
+            "content_id": null,
+            "errors": null,
+            "id": 2,
+            "input_connections": {},
+            "inputs": [
+                {
+                    "description": "",
+                    "name": "GATE Cloud API Password"
+                }
+            ],
+            "label": "GATE Cloud API Password",
+            "name": "Input parameter",
+            "outputs": [],
+            "position": {
+                "left": 117.33331298828125,
+                "top": 447.6666259765625
+            },
+            "tool_id": null,
+            "tool_state": "{\"multiple\": false, \"validators\": [], \"parameter_type\": \"text\", \"optional\": true}",
+            "tool_version": null,
+            "type": "parameter_input",
+            "uuid": "9dab133d-e55b-44a7-8cf7-9ae72869460f",
+            "when": null,
+            "workflow_outputs": []
+        },
+        "3": {
+            "annotation": "",
+            "content_id": "atrium_pdf_text_extraction",
+            "errors": null,
+            "id": 3,
             "input_connections": {
                 "pdf": {
                     "id": 0,
@@ -75,14 +129,14 @@
             "when": null,
             "workflow_outputs": []
         },
-        "2": {
+        "4": {
             "annotation": "",
             "content_id": "atrium_t_4_1_2_ie",
             "errors": null,
-            "id": 2,
+            "id": 4,
             "input_connections": {
                 "input": {
-                    "id": 1,
+                    "id": 3,
                     "output_name": "json"
                 }
             },
@@ -115,18 +169,39 @@
             "when": null,
             "workflow_outputs": []
         },
-        "3": {
+        "5": {
             "annotation": "",
             "content_id": "gate-cloud-client",
             "errors": null,
-            "id": 3,
+            "id": 5,
             "input_connections": {
-                "input": {
+                "credentials|api_key": {
+                    "id": 1,
+                    "output_name": "output"
+                },
+                "credentials|api_password": {
                     "id": 2,
+                    "output_name": "output"
+                },
+                "input": {
+                    "id": 4,
                     "output_name": "output"
                 }
             },
-            "inputs": [],
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool gate-cloud-client",
+                    "name": "credentials"
+                },
+                {
+                    "description": "runtime parameter for tool gate-cloud-client",
+                    "name": "credentials"
+                },
+                {
+                    "description": "runtime parameter for tool gate-cloud-client",
+                    "name": "input"
+                }
+            ],
             "label": "Geoparsing (Geonames)",
             "name": "gate-cloud-client",
             "outputs": [
@@ -141,7 +216,7 @@
             },
             "post_job_actions": {},
             "tool_id": "gate-cloud-client",
-            "tool_state": "{\"credentials\": {\"api_key\": \"gcsm8fta7ahw\", \"api_password\": \"btvdecnizcly9pcpeh86\"}, \"endpoint\": \"https://cloud-api.gate.ac.uk/process/geonames-gaz-ner\", \"input\": {\"__class__\": \"ConnectedValue\"}, \"__page__\": 0, \"__rerun_remap_job_id__\": null}",
+            "tool_state": "{\"credentials\": {\"api_key\": {\"__class__\": \"ConnectedValue\"}, \"api_password\": {\"__class__\": \"ConnectedValue\"}}, \"endpoint\": \"https://cloud-api.gate.ac.uk/process/geonames-gaz-ner\", \"input\": {\"__class__\": \"RuntimeValue\"}, \"__page__\": 0, \"__rerun_remap_job_id__\": null}",
             "tool_uuid": null,
             "tool_version": "1.0.0",
             "type": "tool",
@@ -157,6 +232,6 @@
         }
     },
     "tags": [],
-    "uuid": "defd5bb0-97bd-486e-841f-d3eb68ffaf53",
-    "version": 3
+    "uuid": "765e3b6f-1c24-4724-a07c-c347fa0c288b",
+    "version": 5
 }
