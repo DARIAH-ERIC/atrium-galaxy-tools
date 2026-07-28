@@ -9,3 +9,6 @@
 [submodule "tools/gate-galaxy-wrapper"]
 	path = tools/gate-galaxy-wrapper
 	url = git@github.com:greenwoodma/gate-galaxy-wrapper.git
+[submodule "tools/T4.5.2_Geotagging_of_texts"]
+	path = tools/T4.5.2_Geotagging_of_texts
+	url = git@github.com:greenwoodma/T4.5.2_Geotagging_of_texts.git
