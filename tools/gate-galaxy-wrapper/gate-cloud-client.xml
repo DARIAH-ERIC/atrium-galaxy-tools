@@ -1,0 +1,48 @@
+<tool name="gate-cloud-client" id="gate-cloud-client" version="1.0.0" profile="22.05">
+  <description>Calls a GATE Cloud Service</description>
+  <requirements>
+    <requirement version="3.14.6" type="package">python</requirement>
+    <requirement version="2.34.2" type="package">requests</requirement>
+  </requirements>
+  <version_command><![CDATA[echo "1.0.0"]]></version_command>
+  <command><![CDATA[python
+'$__tool_directory__/gate-cloud-client.py'
+--input '$input'
+--output '$output'
+--endpoint '$endpoint'
+#if $api_key and $api_password
+--api-key $api_key
+--api-password $api_password
+#end if
+]]></command>
+  <inputs>
+    <param name="input" type="data" optional="false" label="JSON to process" help="" format="json" multiple="false"/>
+    <param type="text" name="endpoint" optional="false" help="GATE Cloud endpoint to call, typically copied from the 'Use this pipeline' section on GATE Cloud.">
+      <validator type="empty_field"/>
+    </param>
+
+    <section name="credentials" title="GATE Cloud Credentials" expanded="true" help="If credentials are not provided you will be subject to the (very low) unauthenticated rate limits of cloud.gate.ac.uk.">
+      <param type="text" name="api_key" optional="true"/>
+      <param type="text" name="api_password" optional="true"/>
+    </section>
+
+  </inputs>
+  <outputs>
+    <data name="output" format="json" label="json" hidden="false"/>
+  </outputs>
+  <tests>
+    <test>
+      <output name="output" value="sample_output.json" compare="diff" lines_diff="0"/>
+      <param name="input" value="sample_input.json"/>
+      <param name="endpoint" value="https://cloud-api.gate.ac.uk/process/annie-named-entity-recognizer"/>
+    </test>
+  </tests>
+  <help><![CDATA[
+Calls a GATE Cloud Service
+  ]]></help>
+  <citations>
+    <!-- leave the ToolFactory citation for now so we pass the linter -->
+    <citation type="doi">10.1093/bioinformatics/bts573</citation>
+  </citations>
+</tool>
+

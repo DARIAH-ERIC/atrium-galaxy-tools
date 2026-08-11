@@ -2,7 +2,7 @@
 
 This repository contains a simple Docker Compose based Galaxy instance that is pre-configured to include the currently available Galaxy tool wrappers for the components produced as part of the ATRIUM project.
 
-The individual tools live in other repositories and are included here as submodules. Once you have cloned this repository run the `init.sh` script to get the tools and to create the configuration directory.
+Once you have cloned this repository run the `init.sh` script to correctly create the configuration directory.
 
 You should then be able to bring up a Galaxy instance using the command
 

@@ -1,10 +1,12 @@
 services:
   galaxy:
-    image: quay.io/bgruening/galaxy
+    image: quay.io/bgruening/galaxy:26.0
     ports:
       - 8080:80
     environment:
       - GALAXY_CONFIG_TOOL_CONFIG_FILE=/etc/galaxy/tool_conf.xml,/local_tools/atrium_tools.xml
+      - GALAXY_CONFIG_DATA_MANAGER_CONFIG_FILE=/local_data_managers/data_manager_spacy_models/data_manager_conf.xml
+      - GALAXY_CONFIG_TOOL_DATA_TABLE_CONFIG_PATH=/local_data_managers/data_manager_spacy_models/tool_data_table_conf.xml
     volumes:
       - type: bind
         source: ./config/
@@ -12,3 +14,6 @@ services:
       - type: bind
         source: ./tools/
         target: /local_tools/
+      - type: bind
+        source: ./data_managers/
+        target: /local_data_managers/

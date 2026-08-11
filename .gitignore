@@ -1,1 +1,6 @@
+# this is the dir we use to persist the Galaxy instance
+# across docker restarts
 config
+
+# don't check in any planemo test results
+**/tool_test_output*
