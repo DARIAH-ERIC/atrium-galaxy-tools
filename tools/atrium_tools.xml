@@ -1,9 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <toolbox monitor="true">
   <section id="artrium" name="ATRIUM">
-	  <tool file="/local_tools/atrium-text_extraction/Galaxy_Wrapper/atrium_pdf_text_extraction/atrium_pdf_text_extraction.xml" />
+	  <tool file="/local_tools/atrium_pdf_text_extraction/atrium_pdf_text_extraction.xml" />
+	  <tool file="/local_tools/gate-galaxy-wrapper/gate-cloud-client.xml" />
+	  
 	  <tool file="/local_tools/rematch2/Galaxy_Tools/ATRIUM_T4_1_2_IE/ATRIUM_T4_1_2_IE.xml" />
 	  <tool file="/local_tools/rematch2/Galaxy_Tools/ATRIUM_T4_1_3_IE/ATRIUM_T4_1_3_IE.xml" />
-	  <tool file="/local_tools/gate-galaxy-wrapper/gate-cloud-client.xml" />
+	  <tool file="/local_tools/T4.5.2_Geotagging_of_texts/Galaxy_Tools/ATRIUM_T4_5_2_NER/ATRIUM_T4_5_2_NER.xml" />
   </section>
 </toolbox>

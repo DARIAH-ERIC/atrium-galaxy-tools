@@ -1,0 +1,44 @@
+{
+    "meta": {
+        "ocr": false
+    },
+    "text": "My name is Mark, I live in Sheffield which is in Yorkshire.",
+    "sections": [
+        {
+            "start": 0,
+            "end": 59,
+            "type": "page",
+            "number": 1
+        }
+    ],
+    "spans": [
+        {
+            "label": "Location",
+            "start": 27,
+            "end": 36,
+            "span_text": "Sheffield",
+            "features": {
+                "kind": "locName",
+                "rule": "InLoc1",
+                "locType": "city",
+                "majorType": "location",
+                "minorType": "city",
+                "ruleFinal": "LocFinal"
+            }
+        },
+        {
+            "label": "Location",
+            "start": 49,
+            "end": 58,
+            "span_text": "Yorkshire",
+            "features": {
+                "kind": "locName",
+                "rule": "InLoc1",
+                "locType": "region",
+                "majorType": "location",
+                "minorType": "region",
+                "ruleFinal": "LocFinal"
+            }
+        }
+    ]
+}
