@@ -1,0 +1,102 @@
+[
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/141190",		
+    "pattern": "CBM"
+  },  
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/97326",		
+    "pattern": "bladelet"
+  },
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/142911",		
+    "pattern": "deposition" 
+  }, 
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/97566",		
+    "pattern": "flint"
+  },
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/97566",		
+    "pattern": "flintwork"
+  },
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/97566",		
+    "pattern": "lithics"
+  },
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/97042",		
+    "pattern": "loom-weight"
+  },
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/97042",		
+    "pattern": "loom weight"
+  },
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/95096",		
+    "pattern": "mollusc"
+  },
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/137051",		
+    "pattern": "pottery"
+  },
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/96961",	
+    "pattern": "quernstone"
+  },
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/96961",	
+    "pattern": "quern stone"
+  },  
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/97183",		
+    "pattern": "scraper"
+  }, 
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/170833",		
+    "pattern": "shell"  
+  }, 
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/96982",		
+    "pattern": "tool"  
+  }, 
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/142915",	
+    "pattern": [
+      { "POS": "ADJ", "LOWER": "alluvial" },
+      { "POS": "NOUN" }
+    ]
+  },
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/142915",	
+    "pattern": [
+      { "POS": "ADJ" },
+      { "LOWER": "alluvium" }
+    ]
+  },
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/142920",	
+    "pattern": [
+      { "POS": "ADJ", "LOWER": "colluvial" },
+      { "POS": "NOUN" }
+    ]
+  },
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/142920",	
+    "pattern": [
+      { "POS": "ADJ" },
+      { "LOWER": "colluvium" }
+    ]
+  },
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/170829",		
+    "pattern": "fossil"
+  }, 
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/170831",		
+    "pattern": "pebble"
+  },
+  {
+    "id": "http://purl.org/heritagedata/schemes/mda_obj/concepts/169938",		
+    "pattern": "hazelnut"
+  }   
+]

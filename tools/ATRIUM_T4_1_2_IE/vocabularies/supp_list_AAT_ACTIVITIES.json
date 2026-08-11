@@ -1,0 +1,19 @@
+[
+    {
+        "id": "http://vocab.getty.edu/aat/300054595",	
+        "label"	: "AAT_ACTIVITY",	 
+        "pattern": [
+            { },
+            { "LEMMA": "analysis" }
+        ]
+    },
+
+    {
+        "id": "http://vocab.getty.edu/aat/300054714",	
+        "label"	: "AAT_ACTIVITY",	 
+        "pattern": [
+        { "POS": { "IN": ["ADJ", "ADV"] }},
+        { "POS": "VERB", "LEMMA": "dating" }
+        ]
+    }
+]

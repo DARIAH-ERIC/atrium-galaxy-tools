@@ -1,0 +1,23 @@
+[    
+    { 
+        "patterns": [[ 
+            { "POS": { "IN": ["ADJ", "DET"] } }, 
+            { "POS": { "IN": ["ADJ", "PROPN"] }, "LOWER": "mosaic" } ]],
+        "attrs": { "POS": "NOUN" },
+        "index": 1
+    },    
+    { 
+        "patterns": [[ 
+            { "LOWER": "villa" }, 
+            { "POS": "NOUN" } ]],
+        "attrs": { "POS": "NOUN" },
+        "index": 0
+    },
+    { 
+        "patterns": [[ 
+            { "POS": "NOUN", "LOWER": "post" }, 
+            { "POS": "PUNCT", "TEXT": "-" } ]],
+        "attrs": { "POS": "ADJ" },
+        "index": 0
+    }
+]

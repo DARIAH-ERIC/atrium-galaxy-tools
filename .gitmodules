@@ -1,6 +1,3 @@
-[submodule "rematch2"]
-	path = tools/rematch2
-	url = https://github.com/cbinding/rematch2.git
 [submodule "tools/T4.5.2_Geotagging_of_texts"]
 	path = tools/T4.5.2_Geotagging_of_texts
 	url = git@github.com:greenwoodma/T4.5.2_Geotagging_of_texts.git
