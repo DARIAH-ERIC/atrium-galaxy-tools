@@ -1,0 +1,45 @@
+name: Reload Galaxy ATRIUM tools
+
+on:
+  repository_dispatch:
+    types:
+      - atrium-tool-updated
+
+  workflow_dispatch:
+
+concurrency:
+  group: galaxy-atrium-tools-restart
+  cancel-in-progress: false
+
+jobs:
+  restart-galaxy:
+    name: Restart Galaxy web deployment
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure Kubernetes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p "${HOME}/.kube"
+
+          echo "${{ secrets.KUBE_CONFIG }}" \
+            | base64 --decode \
+            > "${HOME}/.kube/config"
+
+          chmod 600 "${HOME}/.kube/config"
+
+      - name: Verify Kubernetes access
+        run: |
+          kubectl get deployment galaxy-web -n galaxy
+
+      - name: Restart Galaxy
+        run: |
+          kubectl rollout restart deployment/galaxy-web -n galaxy
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/galaxy-web \
+            -n galaxy \
+            --timeout=10m
