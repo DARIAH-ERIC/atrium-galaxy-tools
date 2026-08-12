@@ -1,0 +1,90 @@
+name: Build ATRIUM Runtime
+
+on:
+  # Build a new runtime image whenever the runtime definition changes
+  # on the main branch.
+  push:
+    branches:
+      - main
+    paths:
+      - "containers/atrium-runtime/**"
+      - ".github/workflows/build-atrium-runtime.yml"
+
+  # Allow maintainers to trigger a rebuild manually from GitHub Actions.
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/atrium-runtime
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      # Required by actions/checkout.
+      contents: read
+
+      # Required to publish the runtime image to GitHub Container Registry.
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Buildx provides the modern Docker build backend and enables
+      # GitHub Actions build caching.
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Authenticate against GitHub Container Registry using the repository's
+      # automatically generated GITHUB_TOKEN. No additional registry password
+      # is required.
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Generate an immutable image tag from the Git commit.
+      #
+      # Example:
+      #   ghcr.io/dariah-eric/atrium-runtime:sha-a1b2c3d
+      #
+      # We deliberately do not publish a "latest" tag. Galaxy should always
+      # reference a specific runtime image so that deployments are
+      # reproducible and can be rolled back safely.
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=sha-
+
+      # Build the shared ATRIUM runtime image and push it directly to GHCR.
+      #
+      # The image contains runtime dependencies only. The actual Galaxy tool
+      # wrappers and Python source files remain in the repository and are
+      # mounted into Kubernetes jobs through the Galaxy persistent volume.
+      - name: Build and push ATRIUM runtime
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: containers/atrium-runtime/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+          # Cache Docker layers in GitHub Actions to make subsequent builds
+          # significantly faster.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Print the exact immutable image reference so it is easy to copy into
+      # the Galaxy Helm/TPV configuration after a successful build.
+      - name: Show published image
+        run: |
+          echo "Published ATRIUM runtime image:"
+          echo "${{ steps.meta.outputs.tags }}"
