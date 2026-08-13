@@ -1,7 +1,7 @@
 <tool name="atrium_t4_1_2_ie" id="atrium_t_4_1_2_ie" version="1.0.0" profile="22.05">
   <description>ATRIUM T4.1.2 IE Component</description>
   <requirements>
-    <requirement version="3.14.6" type="package">python</requirement>
+    <requirement version="3.12.3" type="package">python</requirement>
     <requirement version="3.8.14" type="package">spacy</requirement>
     <requirement version="8.4.1" type="package">click</requirement>
     <requirement version="3.0.3" type="package">pandas</requirement>    
