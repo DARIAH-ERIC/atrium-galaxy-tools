@@ -5,11 +5,31 @@ import json
 import argparse
 import sys
 
+from pathlib import Path
+
 import time
 
 from typing import Optional
 
+from json import JSONDecoder
+from functools import partial
+
 logger = logging.getLogger(__name__)
+
+# https://stackoverflow.com/a/21709058
+def json_parse(fileobj, decoder=JSONDecoder(), buffersize=2048):
+    buffer = ''
+    for chunk in iter(partial(fileobj.read, buffersize), ''):
+        buffer += chunk
+        while buffer:
+            try:
+                result, index = decoder.raw_decode(buffer)
+                yield result
+                buffer = buffer[index:].lstrip()
+            except ValueError:
+                # Not enough data to decode, read more
+                break
+
 
 class GateClient:
 
@@ -72,73 +92,72 @@ class GateClient:
         finally:
             response.close()
 
+
     def run(self, in_file, out_file):
         logger.info("Reading input file '%s'", in_file)
 
-        # read the text out of the input JSON file
-        with open(in_file, "r") as f:    
-            file_content = json.load(f)
-
-        text = file_content["text"]
-
-        # setup counters to deal with rate limiting
-        rate_limit_failures = 0
-        wait_before_next_call = 0.0
-
-
-        while True:
-
-            self.request_start_time = time.perf_counter()
-            
-            response = self.session.post(self.endpoint, data=text)
-
-            if response.status_code == 200:
-                gate_json = response.json()
-
-                spans = []
-
-                for entity_type, entities in gate_json["entities"].items():
-                    for entity in entities:
-                        indices = entity.pop("indices")
-
-                        spans.append({
-                            "label": entity_type,
-                            "start": indices[0],
-                            "end": indices[1],
-                            "span_text": text[indices[0]:indices[1]],
-                            "features": entity
-                        })
-                break
-            elif response.status_code == 429 or response.status_code == 402:
-                # Rate limit or quota has been hit
-                rate_limit_failures += 1
-                if rate_limit_failures > 5:
-                    # something is very wrong, give up
-                    logger.error(response.text)
-                    sys.exit(1)
-                wait_before_next_call = self.handle_rate_limit(response)
-            else:
-                # Genuine error response
-                logger.error(response.text)
-                sys.exi(1)
-
-            if wait_before_next_call > 5.0:
-                logger.info(
-                    "Waiting %.2f seconds before next API call for rate limiting",
-                    wait_before_next_call,
-                )
-            time.sleep(wait_before_next_call)
-
-
-        if "spans" in file_content:
-            file_content["spans"].extend(spans)
-        else:
-            file_content["spans"] = spans
-
         with open(out_file, "w") as file:
-            # converting to JSON string first, for pretty printing
-            json_string = json.dumps(file_content, indent=4, default=str)
-            file.write(json_string)
+        
+            with in_file.open() as f:    
+                for file_content in json_parse(f):
+        
+                    text = file_content["text"]
+
+                    # setup counters to deal with rate limiting
+                    rate_limit_failures = 0
+                    wait_before_next_call = 0.0
+
+
+                    while True:
+
+                        self.request_start_time = time.perf_counter()
+                        
+                        response = self.session.post(self.endpoint, data=text)
+
+                        if response.status_code == 200:
+                            gate_json = response.json()
+
+                            spans = []
+
+                            for entity_type, entities in gate_json["entities"].items():
+                                for entity in entities:
+                                    indices = entity.pop("indices")
+
+                                    spans.append({
+                                        "label": entity_type,
+                                        "start": indices[0],
+                                        "end": indices[1],
+                                        "span_text": text[indices[0]:indices[1]],
+                                        "features": entity
+                                    })
+                            break
+                        elif response.status_code == 429 or response.status_code == 402:
+                            # Rate limit or quota has been hit
+                            rate_limit_failures += 1
+                            if rate_limit_failures > 5:
+                                # something is very wrong, give up
+                                logger.error(response.text)
+                                sys.exit(1)
+                            wait_before_next_call = self.handle_rate_limit(response)
+                        else:
+                            # Genuine error response
+                            logger.error(response.text)
+                            sys.exi(1)
+
+                        if wait_before_next_call > 5.0:
+                            logger.info(
+                                "Waiting %.2f seconds before next API call for rate limiting",
+                                wait_before_next_call,
+                            )
+                        time.sleep(wait_before_next_call)
+
+
+                    if "spans" in file_content:
+                        file_content["spans"].extend(spans)
+                    else:
+                        file_content["spans"] = spans
+
+                    file.write(f"{json.dumps(file_content)}\n")
 
 
 def main():
@@ -172,7 +191,7 @@ def main():
 
     client = GateClient(args, credentials)
 
-    client.run(args.input, args.output)
+    client.run(Path(args.input.strip()), Path(args.output.strip()))
 
 if __name__ == "__main__":
     main()
