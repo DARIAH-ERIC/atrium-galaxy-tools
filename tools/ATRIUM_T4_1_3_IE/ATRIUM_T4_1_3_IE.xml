@@ -28,6 +28,10 @@
       <output name="output" value="sample_output.jsonl" compare="diff" lines_diff="0"/>
       <param name="input" value="sample.jsonl"/>
     </test>
+     <test>
+      <output name="output" value="multiple_output.jsonl" compare="diff" lines_diff="0"/>
+      <param name="input" value="multiple_input.jsonl"/>
+    </test>
   </tests>
   <help><![CDATA[
  Vocabulary-Driven Information Extraction as defined in Task 4.1.3 of the ATRIUM project.
