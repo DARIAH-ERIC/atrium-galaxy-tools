@@ -28,6 +28,10 @@
       <output name="output" value="output_sample" compare="diff" lines_diff="0"/>
       <param name="input" value="input_sample"/>
     </test>
+    <test>
+      <output name="output" value="multiple_output_sample" compare="diff" lines_diff="0"/>
+      <param name="input" value="multiple_input_sample"/>
+    </test>
   </tests>
   <help><![CDATA[
  Vocabulary-Driven Information Extraction as defined in Task 4.1.2 of the ATRIUM project.
