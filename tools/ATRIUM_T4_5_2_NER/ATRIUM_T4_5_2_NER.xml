@@ -47,6 +47,12 @@
       <param name="download_model" value="true"/>
       <param name="model" value="en_deberta_v3_base_ner_historical_place_0.0.0"/>
     </test>
+    <test>
+      <output name="output" value="multiple_output.jsonl" compare="diff" lines_diff="0"/>
+      <param name="input" value="multiple_input.jsonl"/>
+      <param name="download_model" value="true"/>
+      <param name="model" value="en_deberta_v3_base_ner_historical_place_0.0.0"/>
+    </test>
   </tests>
   <help><![CDATA[
  Vocabulary-Driven Information Extraction as defined in Task 4.1.2 of the ATRIUM project.
