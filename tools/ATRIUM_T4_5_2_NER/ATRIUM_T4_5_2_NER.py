@@ -8,38 +8,59 @@ import zipfile
 import spacy
 import shutil
 
+from json import JSONDecoder
+from functools import partial
+
 logger = logging.getLogger(__name__)
+
+# https://stackoverflow.com/a/21709058
+def json_parse(fileobj, decoder=JSONDecoder(), buffersize=2048):
+    buffer = ''
+    for chunk in iter(partial(fileobj.read, buffersize), ''):
+        buffer += chunk
+        while buffer:
+            try:
+                result, index = decoder.raw_decode(buffer)
+                yield result
+                buffer = buffer[index:].lstrip()
+            except ValueError:
+                # Not enough data to decode, read more
+                break
 
 def process(input: Path, model: Path, output: Path):
     logger.info("Reading input file '%s'", input)
 
     # read the text out of the input JSON file
-    with open(input, "r") as f:    
-        file_content = json.load(f)
+    #with open(input, "r") as f:    
+    #    file_content = json.load(f)
+    with open(output, "w") as file:
+    
+        with input.open() as f:    
+            for file_content in json_parse(f):
 
-    text = file_content["text"]
+                text = file_content["text"]
 
-    ner = spacy.load(model)
+                ner = spacy.load(model)
 
-    annotations = ner(text).ents
+                annotations = ner(text).ents
 
-    spans = []
+                spans = []
 
-    for annotation in annotations:
-        spans.append({
-            "label": "PLACE",
-            "start": annotation.start_char,
-            "end": annotation.end_char,
-            "span_text": text[annotation.start_char:annotation.end_char]
-        })
+                for annotation in annotations:
+                    spans.append({
+                        "label": "PLACE",
+                        "start": annotation.start_char,
+                        "end": annotation.end_char,
+                        "span_text": text[annotation.start_char:annotation.end_char]
+                    })
 
-    if "spans" in file_content:
-        file_content["spans"].extend(spans)
-    else:
-        file_content["spans"] = spans
+                if "spans" in file_content:
+                    file_content["spans"].extend(spans)
+                else:
+                    file_content["spans"] = spans
 
-    with open(output, 'w') as f:
-        json.dump(file_content, f)
+                file.write(f"{json.dumps(file_content)}\n")
+
 
 def download_model(url: str, dest_parent: Path):
     """Download and extract a spaCy model wheel, returning the loadable model dir.

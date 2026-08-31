@@ -9,6 +9,23 @@ from datetime import datetime as DT # for timestamps
 from components import DocSummary, SpanScorer
 from ATRIUM_T4_1_2_IE_pipeline import create_configured_pipeline
 
+from json import JSONDecoder
+from functools import partial
+
+# https://stackoverflow.com/a/21709058
+def json_parse(fileobj, decoder=JSONDecoder(), buffersize=2048):
+    buffer = ''
+    for chunk in iter(partial(fileobj.read, buffersize), ''):
+        buffer += chunk
+        while buffer:
+            try:
+                result, index = decoder.raw_decode(buffer)
+                yield result
+                buffer = buffer[index:].lstrip()
+            except ValueError:
+                # Not enough data to decode, read more
+                break
+
 def run_pipeline(nlp: Language, input_data: dict={}) -> Doc: 
     # run the IE pipeline on the 'text' property of the input
     doc = nlp(input_data.get("text",""))
@@ -19,27 +36,17 @@ def run_pipeline(nlp: Language, input_data: dict={}) -> Doc:
     # return the document
     return doc
 
-def write_report(
+def generate_report(
     doc: Doc,
-    file_name: str="",
     metadata: dict={},
-    sections: list = []):
+    sections: list = []) -> dict:
     
-    print(f"Summarizing results...")
-    ts_sum = DT.now()         
     summary = DocSummary(doc, metadata=metadata)
-    print(f"finished summarizing results in {DT.now() - ts_sum}")
-
-    file_name_with_suffix = file_name
-
+    
     report = summary.report_to_json() 
-    # include sections in output for score diagnostics
-    report["sections"] = sections 
-    # write report to file    
-    with open(file_name_with_suffix, "w") as file:
-        # converting to JSON string first, for pretty printing
-        json_string = json.dumps(report, indent=4, default=str)
-        file.write(json_string)
+    report["sections"] = sections
+
+    return report
 
 # run configured information extraction pipeline on specified set of input documents
 def run_information_extraction(
@@ -52,40 +59,44 @@ def run_information_extraction(
     
     print(f"Reading file '{entry.name}'...")
     #file_content = get_file_content(entry)
-    with entry.open() as f:    
-        file_content = json.load(f)
-    
-    # get any existing metadata from the input file       
-    old_metadata: dict = file_content.get("meta", {})      
-    # set up new metadata to include in the output
-    new_metadata: dict = {
-        #"identifier": entry.name,
-        "title": "vocabulary-based IE results",
-        #"description": f"vocabulary-based information extraction results for file '{entry.name}'",
-        #"creator": __file__, 
-        #"created": DT.now().isoformat(),
-        "pipeline": nlp.pipe_names,
-        #"input_file_name": entry.name
-    }
-    # merge with existing metadata in input_file_content 
-    metadata: dict = {**old_metadata, **new_metadata}
-    file_content["meta"] = metadata
-    
-    # run the IE pipeline on the 'text' property of the input 
-    print(f"Running IE pipeline on '{entry.name}'...")        
-    doc = run_pipeline(nlp, file_content)
 
-    # write results to output file
-    #output_file_name = Path(output_path).joinpath(f"ie-output-{slugify(entry.name)}")
-    output_file_name = output_path
-    print(f"Creating report '{output_file_name}'...")  
-    ts_out = DT.now()        
-    
-    write_report(
-        doc=doc, 
-        file_name=str(output_file_name), 
-        metadata=file_content.get("meta",{}),
-        sections=file_content.get("sections", []))
+    with open(output_path, "w") as file:
+
+        with entry.open() as f:    
+            for file_content in json_parse(f):
+
+                # get any existing metadata from the input file       
+                old_metadata: dict = file_content.get("meta", {})      
+                # set up new metadata to include in the output
+                new_metadata: dict = {
+                    #"identifier": entry.name,
+                    "title": "vocabulary-based IE results",
+                    #"description": f"vocabulary-based information extraction results for file '{entry.name}'",
+                    #"creator": __file__, 
+                    #"created": DT.now().isoformat(),
+                    "pipeline": nlp.pipe_names,
+                    #"input_file_name": entry.name
+                }
+                # merge with existing metadata in input_file_content 
+                metadata: dict = {**old_metadata, **new_metadata}
+                file_content["meta"] = metadata
+                
+                # run the IE pipeline on the 'text' property of the input 
+                print(f"Running IE pipeline on '{entry.name}'...")        
+                doc = run_pipeline(nlp, file_content)
+
+                # write results to output file
+                #output_file_name = Path(output_path).joinpath(f"ie-output-{slugify(entry.name)}")
+                output_file_name = output_path
+                print(f"Creating report '{output_file_name}'...")  
+                ts_out = DT.now()        
+                
+                report = generate_report(
+                    doc=doc,
+                    metadata=file_content.get("meta",{}),
+                    sections=file_content.get("sections", []))
+
+                file.write(f"{json.dumps(report)}\n")
     
     print(f"finished creating report in {DT.now() - ts_out}")
 

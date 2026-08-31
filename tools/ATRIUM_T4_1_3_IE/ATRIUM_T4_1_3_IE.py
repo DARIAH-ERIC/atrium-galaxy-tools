@@ -1,7 +1,6 @@
+import json
 import spacy # for text processing
-# from spacy import displacy # for visualisation of tagged text
 from spacy.tokens import Span
-import srsly # for JSONL serialization/deserialization
 
 import os
 
@@ -9,6 +8,25 @@ import argparse
 
 from components import DocSummary # custom vocabulary-based components
 from components.Util import read_json_file # for reading supplementary lists from JSON files
+
+from json import JSONDecoder
+from functools import partial
+from pathlib import Path
+
+# https://stackoverflow.com/a/21709058
+def json_parse(fileobj, decoder=JSONDecoder(), buffersize=2048):
+    buffer = ''
+    for chunk in iter(partial(fileobj.read, buffersize), ''):
+        buffer += chunk
+        while buffer:
+            try:
+                result, index = decoder.raw_decode(buffer)
+                yield result
+                buffer = buffer[index:].lstrip()
+            except ValueError:
+                # Not enough data to decode, read more
+                break
+
 
 # check if a given span exists in a list of spans
 # comparing start/end positions and label
@@ -93,38 +111,31 @@ if __name__ == '__main__':
     ) 
     
     nlp.add_pipe("child_span_remover", last=True) 
-    
-     # read JSONL input data from file
-    #input_data_path = "./data/athena"
-    #input_file_name = "sample_annotated_output.jsonl"   
-    #input_file_path = os.path.join(input_data_path, input_file_name) 
-    data: list = list(srsly.read_jsonl(args.input))
 
-    # process each item in the input data
-    for item in data:
-        identifier = item.get("meta", {}).get("id", "").strip()
-        text = item.get("text", "")
-        # run pipeline against input text
-        doc = nlp(text)
-        
-        # display HTML summary of results (see below)
-        summary = DocSummary(doc)
-        
-        # add new spans to the existing spans array,
-        # checking for duplicates (in case multiple runs)
-        the_spans: list = item.get("spans", []) 
-        new_spans = summary.spans_to_list()
-        for span in new_spans:
-            if not span_exists(span, the_spans):
-                the_spans.append(span)
-        item["spans"] = the_spans
-        #item["tokens2"] = summary.tokens_to_list()
-    
-    # create output file path if it does not already exist
-    #output_data_path = os.path.join(input_data_path, "output")
-    #if not os.path.exists(output_data_path):
-    #    os.makedirs(output_data_path)
+    input_path: Path = Path(args.input.strip())
+    output_path: Path = Path(args.output.strip())
 
-    # output the modified structure to a (new) JSONL file    
-    #output_file_path = "./output.jsonl"
-    srsly.write_jsonl(args.output, data) 
+    with open(output_path, "w") as file:
+
+        with input_path.open() as f:    
+            for item in json_parse(f):
+
+                identifier = item.get("meta", {}).get("id", "").strip()
+                text = item.get("text", "")
+                # run pipeline against input text
+                doc = nlp(text)
+
+                # display HTML summary of results (see below)
+                summary = DocSummary(doc)
+
+                # add new spans to the existing spans array,
+                # checking for duplicates (in case multiple runs)
+                the_spans: list = item.get("spans", []) 
+                new_spans = summary.spans_to_list()
+                for span in new_spans:
+                    if not span_exists(span, the_spans):
+                        the_spans.append(span)
+                item["spans"] = the_spans
+                #item["tokens2"] = summary.tokens_to_list()
+
+                file.write(f"{json.dumps(item)}\n")
