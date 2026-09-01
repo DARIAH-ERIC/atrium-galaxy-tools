@@ -95,6 +95,7 @@ if __name__ == "__main__":
     else:
         # just process the PDF file as normal
         result = convert(args.pdf)
+
     with open(args.json, "w", encoding="utf-8") as f:
-        json.dump(result, f)
+        f.write(f"{json.dumps(result)}\n")
 #end raw
