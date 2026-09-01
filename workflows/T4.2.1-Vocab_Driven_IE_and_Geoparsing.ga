@@ -14,24 +14,19 @@
             "errors": null,
             "id": 0,
             "input_connections": {},
-            "inputs": [
-                {
-                    "description": "",
-                    "name": "PDF to Process"
-                }
-            ],
-            "label": "PDF to Process",
-            "name": "Input dataset",
+            "inputs": [],
+            "label": null,
+            "name": "Input dataset collection",
             "outputs": [],
             "position": {
-                "left": 0,
-                "top": 0
+                "left": 0.0,
+                "top": 0.0
             },
             "tool_id": null,
-            "tool_state": "{\"optional\": false, \"tag\": null}",
+            "tool_state": "{\"optional\": false, \"tag\": null, \"collection_type\": \"list\", \"fields\": null, \"column_definitions\": null}",
             "tool_version": null,
-            "type": "data_input",
-            "uuid": "66730215-11f2-4ba5-8b65-8274e49d4790",
+            "type": "data_collection_input",
+            "uuid": "fa38e634-85a1-4026-8126-dea6759a0680",
             "when": null,
             "workflow_outputs": []
         },
@@ -51,14 +46,14 @@
             "name": "Input parameter",
             "outputs": [],
             "position": {
-                "left": 61.6666259765625,
-                "top": 336.6666259765625
+                "left": 1.33331298828125,
+                "top": 377.41054621582026
             },
             "tool_id": null,
             "tool_state": "{\"multiple\": false, \"validators\": [], \"parameter_type\": \"text\", \"optional\": true}",
             "tool_version": null,
             "type": "parameter_input",
-            "uuid": "66875c37-bf73-40b4-8060-71dc0e405f8f",
+            "uuid": "89efdd8f-1420-46a6-88af-fa01816dd255",
             "when": null,
             "workflow_outputs": []
         },
@@ -78,14 +73,14 @@
             "name": "Input parameter",
             "outputs": [],
             "position": {
-                "left": 117.33331298828125,
-                "top": 447.6666259765625
+                "left": 57.0,
+                "top": 488.41054621582026
             },
             "tool_id": null,
             "tool_state": "{\"multiple\": false, \"validators\": [], \"parameter_type\": \"text\", \"optional\": true}",
             "tool_version": null,
             "type": "parameter_input",
-            "uuid": "9dab133d-e55b-44a7-8cf7-9ae72869460f",
+            "uuid": "2efe05be-593c-4df5-b4ab-25513ad20b6e",
             "when": null,
             "workflow_outputs": []
         },
@@ -110,8 +105,8 @@
                 }
             ],
             "position": {
-                "left": 137.33331298828125,
-                "top": 148.33335876464844
+                "left": 102.33331298828125,
+                "top": 125.75
             },
             "post_job_actions": {
                 "HideDatasetActionjson": {
@@ -125,19 +120,70 @@
             "tool_uuid": null,
             "tool_version": "1.0.0",
             "type": "tool",
-            "uuid": "fbd8a83d-b09f-4d0e-964c-5e1813bd6166",
+            "uuid": "2985976e-f282-4310-a896-7294e0ecca38",
             "when": null,
             "workflow_outputs": []
         },
         "4": {
             "annotation": "",
-            "content_id": "atrium_t_4_1_2_ie",
+            "content_id": "toolshed.g2.bx.psu.edu/repos/nml/collapse_collections/collapse_dataset/5.1.0",
             "errors": null,
             "id": 4,
             "input_connections": {
-                "input": {
+                "input_list": {
                     "id": 3,
                     "output_name": "json"
+                }
+            },
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Collapse Collection",
+                    "name": "input_list"
+                }
+            ],
+            "label": null,
+            "name": "Collapse Collection",
+            "outputs": [
+                {
+                    "name": "output",
+                    "type": "input"
+                }
+            ],
+            "position": {
+                "left": 340.66668701171875,
+                "top": 116.66665649414062
+            },
+            "post_job_actions": {
+                "HideDatasetActionoutput": {
+                    "action_arguments": {},
+                    "action_type": "HideDatasetAction",
+                    "output_name": "output"
+                }
+            },
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/nml/collapse_collections/collapse_dataset/5.1.0",
+            "tool_shed_repository": {
+                "changeset_revision": "90981f86000f",
+                "name": "collapse_collections",
+                "owner": "nml",
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            },
+            "tool_state": "{\"filename\": {\"add_name\": false, \"__current_case__\": 1}, \"input_list\": {\"__class__\": \"RuntimeValue\"}, \"one_header\": false, \"__page__\": 0, \"__rerun_remap_job_id__\": null}",
+            "tool_uuid": null,
+            "tool_version": "5.1.0",
+            "type": "tool",
+            "uuid": "72bb2f74-67a3-4c4c-9f9c-cee4a5e0af8b",
+            "when": null,
+            "workflow_outputs": []
+        },
+        "5": {
+            "annotation": "",
+            "content_id": "atrium_t_4_1_2_ie",
+            "errors": null,
+            "id": 5,
+            "input_connections": {
+                "input": {
+                    "id": 4,
+                    "output_name": "output"
                 }
             },
             "inputs": [],
@@ -150,8 +196,8 @@
                 }
             ],
             "position": {
-                "left": 413.6666259765625,
-                "top": 162
+                "left": 594.0,
+                "top": 150.08334350585938
             },
             "post_job_actions": {
                 "HideDatasetActionoutput": {
@@ -165,15 +211,15 @@
             "tool_uuid": null,
             "tool_version": "1.0.0",
             "type": "tool",
-            "uuid": "0c57376f-5e1c-4f24-85d4-52b6a4490e40",
+            "uuid": "8b9a9a38-ddb1-46b2-8892-f67bbe9e4161",
             "when": null,
             "workflow_outputs": []
         },
-        "5": {
+        "6": {
             "annotation": "",
             "content_id": "gate-cloud-client",
             "errors": null,
-            "id": 5,
+            "id": 6,
             "input_connections": {
                 "credentials|api_key": {
                     "id": 1,
@@ -184,7 +230,7 @@
                     "output_name": "output"
                 },
                 "input": {
-                    "id": 4,
+                    "id": 5,
                     "output_name": "output"
                 }
             },
@@ -196,10 +242,6 @@
                 {
                     "description": "runtime parameter for tool gate-cloud-client",
                     "name": "credentials"
-                },
-                {
-                    "description": "runtime parameter for tool gate-cloud-client",
-                    "name": "input"
                 }
             ],
             "label": "Geoparsing (Geonames)",
@@ -211,27 +253,27 @@
                 }
             ],
             "position": {
-                "left": 513.6666870117188,
-                "top": 328
+                "left": 453.3333740234375,
+                "top": 368.74392023925776
             },
             "post_job_actions": {},
             "tool_id": "gate-cloud-client",
-            "tool_state": "{\"credentials\": {\"api_key\": {\"__class__\": \"ConnectedValue\"}, \"api_password\": {\"__class__\": \"ConnectedValue\"}}, \"endpoint\": \"https://cloud-api.gate.ac.uk/process/geonames-gaz-ner\", \"input\": {\"__class__\": \"RuntimeValue\"}, \"__page__\": 0, \"__rerun_remap_job_id__\": null}",
+            "tool_state": "{\"credentials\": {\"api_key\": {\"__class__\": \"ConnectedValue\"}, \"api_password\": {\"__class__\": \"ConnectedValue\"}}, \"endpoint\": \"https://cloud-api.gate.ac.uk/process/geonames-gaz-ner\", \"input\": {\"__class__\": \"ConnectedValue\"}, \"__page__\": 0, \"__rerun_remap_job_id__\": null}",
             "tool_uuid": null,
             "tool_version": "1.0.0",
             "type": "tool",
-            "uuid": "57e93153-e879-41c0-aed5-d34fe97bc74f",
+            "uuid": "f2d6ed51-621c-4e19-9099-93deb0620aef",
             "when": null,
             "workflow_outputs": [
                 {
                     "label": "output",
                     "output_name": "output",
-                    "uuid": "5798cf40-aca6-4c20-b88d-0a56deb5bee1"
+                    "uuid": "b667a5ed-65af-42d9-9321-f0adb9490c70"
                 }
             ]
         }
     },
     "tags": [],
-    "uuid": "765e3b6f-1c24-4724-a07c-c347fa0c288b",
-    "version": 5
+    "uuid": "bbdf594f-08eb-4da3-83c1-ae8a0e8b28b8",
+    "version": 2
 }

@@ -3,7 +3,7 @@
     "annotation": "",
     "comments": [],
     "format-version": "0.1",
-    "name": "ATRIUM T.4.1.2 IE",
+    "name": "ATRIUM T4.5.2 (NER Only)",
     "report": {
         "markdown": "\n# Workflow Execution Report\n\n## Workflow Inputs\n```galaxy\ninvocation_inputs()\n```\n\n## Workflow Outputs\n```galaxy\ninvocation_outputs()\n```\n\n## Workflow\n```galaxy\nworkflow_display()\n```\n"
     },
@@ -24,14 +24,14 @@
             "name": "Input dataset collection",
             "outputs": [],
             "position": {
-                "left": 0.0,
-                "top": 292.6666564941406
+                "left": 0,
+                "top": 37.99998474121094
             },
             "tool_id": null,
             "tool_state": "{\"optional\": false, \"tag\": null, \"collection_type\": \"list\", \"fields\": null, \"column_definitions\": null}",
             "tool_version": null,
             "type": "data_collection_input",
-            "uuid": "349a67bb-d417-45f1-8971-320eb18d0d73",
+            "uuid": "f501f80c-0753-4948-a3b8-3d001000c142",
             "when": null,
             "workflow_outputs": []
         },
@@ -56,7 +56,7 @@
                 }
             ],
             "position": {
-                "left": 168.33340454101562,
+                "left": 295.3333740234375,
                 "top": 0
             },
             "post_job_actions": {
@@ -71,7 +71,7 @@
             "tool_uuid": null,
             "tool_version": "1.0.0",
             "type": "tool",
-            "uuid": "f8b913e0-ccd9-4ec0-afa2-5ed066245345",
+            "uuid": "b746c0da-6348-440a-89a3-a012b4bc4d6c",
             "when": null,
             "workflow_outputs": []
         },
@@ -96,8 +96,8 @@
                 }
             ],
             "position": {
-                "left": 422.3333740234375,
-                "top": 325.3333435058594
+                "left": 559.3334350585938,
+                "top": 104.66665649414062
             },
             "post_job_actions": {
                 "HideDatasetActionoutput": {
@@ -117,13 +117,13 @@
             "tool_uuid": null,
             "tool_version": "5.1.0",
             "type": "tool",
-            "uuid": "7c39f20b-0d37-42e9-80fa-748a45b8316f",
+            "uuid": "d6f6578b-92fa-44bc-bc48-2bae0a89f005",
             "when": null,
             "workflow_outputs": []
         },
         "3": {
             "annotation": "",
-            "content_id": "atrium_t_4_1_2_ie",
+            "content_id": "atrium_t_4_5_2_ner",
             "errors": null,
             "id": 3,
             "input_connections": {
@@ -133,8 +133,8 @@
                 }
             },
             "inputs": [],
-            "label": "Vocabulary Driven Information Extraction",
-            "name": "atrium_t4_1_2_ie",
+            "label": "Named Entity Recognition",
+            "name": "atrium_t4_5_2_ner",
             "outputs": [
                 {
                     "name": "output",
@@ -142,27 +142,27 @@
                 }
             ],
             "position": {
-                "left": 496.0,
-                "top": 31.666671752929688
+                "left": 301.33343505859375,
+                "top": 312
             },
             "post_job_actions": {},
-            "tool_id": "atrium_t_4_1_2_ie",
-            "tool_state": "{\"input\": {\"__class__\": \"ConnectedValue\"}, \"__page__\": 0, \"__rerun_remap_job_id__\": null}",
+            "tool_id": "atrium_t_4_5_2_ner",
+            "tool_state": "{\"download_model\": \"false\", \"input\": {\"__class__\": \"ConnectedValue\"}, \"model\": \"en_deberta_v3_base_ner_historical_place_0.0.0\", \"__page__\": 0, \"__rerun_remap_job_id__\": null}",
             "tool_uuid": null,
             "tool_version": "1.0.0",
             "type": "tool",
-            "uuid": "17939c84-dfb0-4aab-877e-0341a66b17bd",
+            "uuid": "143dbbcb-634f-479f-bf02-8212bdfd68fa",
             "when": null,
             "workflow_outputs": [
                 {
                     "label": "output",
                     "output_name": "output",
-                    "uuid": "baabcf26-e9f1-4aca-8c30-6c1a69c429d1"
+                    "uuid": "53313877-44ef-47ef-829d-909d48c8d141"
                 }
             ]
         }
     },
     "tags": [],
-    "uuid": "77abf429-9154-4b49-9740-ba3710fb1e94",
+    "uuid": "3c2d82fc-4b19-4fd7-a74d-64218b20afdc",
     "version": 4
 }
