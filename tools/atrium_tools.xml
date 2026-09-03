@@ -6,5 +6,6 @@
 	  <tool file="/local_tools/ATRIUM_T4_1_2_IE/ATRIUM_T4_1_2_IE.xml" />
 	  <tool file="/local_tools/ATRIUM_T4_1_3_IE/ATRIUM_T4_1_3_IE.xml" />
 	  <tool file="/local_tools/ATRIUM_T4_5_2_NER/ATRIUM_T4_5_2_NER.xml" />
+	  <tool file="/local_tools/easyocr/ocr.xml" />
   </section>
 </toolbox>
