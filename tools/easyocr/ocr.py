@@ -39,9 +39,10 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(prog="EasyOCR", description="Extract text from an image using EasyOCR")
 
-    parser.add_argument("input",
+    parser.add_argument("--input", 
+        action="append",
         help="Image file to process")
-    parser.add_argument("output",
+    parser.add_argument("--output",
         help="JSON file to write text into")
         
     parser.add_argument("--paragraphs", action="store_true",
@@ -53,7 +54,7 @@ if __name__ == "__main__":
 
     client = EasyOCR(args);
 
-    result = client.process(args.input, args.output, paragraphs=args.paragraphs)
-
     with open(args.output, "w") as f:
-        f.write(f"{json.dumps(result, default=int)}\n")
+        for in_file in args.input:
+            result = client.process(in_file, args.output, paragraphs=args.paragraphs)
+            f.write(f"{json.dumps(result, default=int)}\n")

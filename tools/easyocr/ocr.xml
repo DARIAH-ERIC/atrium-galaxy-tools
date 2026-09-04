@@ -1,5 +1,5 @@
 <tool name="easyocr" id="easyocr" version="1.0.0" profile="22.05">
-  <description>Calls a GATE Cloud Service</description>
+  <description>EasyOCR</description>
   <requirements>
     <requirement version="3.12.3" type="package">python</requirement>
     <requirement version="1.7.2" type="package">easyocr</requirement>
@@ -7,29 +7,31 @@
   <version_command><![CDATA[echo "1.0.0"]]></version_command>
   <command><![CDATA[python
 '$__tool_directory__/ocr.py'
-'$input'
-'$output'
+#for $image in $images#
+--input '$image'
+#end for
+--output '$ocr_text'
 #if $paragraphs
 --paragraphs
 #end if
 ]]></command>
   <inputs>
-    <param name="input" type="data" optional="false" label="Image to process" help="" format="jpg,png" multiple="false"/>
+    <param name="images" type="data" optional="false" label="Image to process" help="" format="jpg,png" multiple="true"/>
     <param name="paragraphs" type="boolean" optional="true" label="Paragraph mode" help="If true, the OCR will attempt to group text into paragraphs. If false, it will treat each line of text separately." checked="true"/>
     <param name="gpu" type="boolean" optional="true" label="Use GPU" help="If true, the OCR will use the GPU if available. If false, it will use the CPU." checked="false"/>
   </inputs>
   <outputs>
-    <data name="output" format="json" label="json" hidden="false"/>
+    <data name="ocr_text" format="json" label="ocr_text" hidden="false"/>
   </outputs>
   <tests>
     <test>
-      <output name="output" value="advert-paragraphs.json" compare="diff" lines_diff="0"/>
-      <param name="input" value="advert.png"/>
+      <output name="ocr_text" value="advert-paragraphs.json" compare="diff" lines_diff="0"/>
+      <param name="images" value="advert.png"/>
     </test>
     <test>
-      <output name="output" value="advert.json" compare="diff" lines_diff="0"/>
+      <output name="ocr_text" value="advert.json" compare="diff" lines_diff="0"/>
       <param name="paragraphs" value="false"/>
-      <param name="input" value="advert.png"/>
+      <param name="images" value="advert.png"/>
     </test>
   </tests>
   <help><![CDATA[
