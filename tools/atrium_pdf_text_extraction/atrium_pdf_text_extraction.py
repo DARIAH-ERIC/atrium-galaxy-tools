@@ -72,30 +72,34 @@ def convert(file: str|IO[Any]|Path):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="ATRIUM PDF Text Extraction")
     parser.add_argument("--pdf",
+        action="append",
         help="PDF to extract text from", required=True)
     parser.add_argument("--json",
         help="JSON file to write output into", required=True)
     parser.add_argument("--ocr", action="store_true",
         help="Run OCR before extracting text")
     args = parser.parse_args()
-    if args.ocr:
-        # we've been asked to OCR the PDF prior to extracting the text
-        import tempfile
-        import ocrmypdf
-        with tempfile.TemporaryFile() as tmpFile:
-            # we're going to store the updated PDF into a tmp file
-            # and we are forcing a redo of the OCR and hence ignoring
-            # any existing text in there
-            ocrmypdf.ocr(args.pdf, tmpFile, redo_ocr=True)
-            # now do the extraction as befoe
-            result = convert(tmpFile)
-            # make sure we use the original PDF filename in the output
-            #result["meta"]["filename"] = args.pdf
-            result["meta"]["ocr"] = True
-    else:
-        # just process the PDF file as normal
-        result = convert(args.pdf)
 
     with open(args.json, "w", encoding="utf-8") as f:
-        f.write(f"{json.dumps(result)}\n")
-#end raw
+
+        for pdf in args.pdf:
+
+            if args.ocr:
+                # we've been asked to OCR the PDF prior to extracting the text
+                import tempfile
+                import ocrmypdf
+                with tempfile.TemporaryFile() as tmpFile:
+                    # we're going to store the updated PDF into a tmp file
+                    # and we are forcing a redo of the OCR and hence ignoring
+                    # any existing text in there
+                    ocrmypdf.ocr(pdf, tmpFile, redo_ocr=True)
+                    # now do the extraction as befoe
+                    result = convert(tmpFile)
+                    # make sure we use the original PDF filename in the output
+                    #result["meta"]["filename"] = args.pdf
+                    result["meta"]["ocr"] = True
+            else:
+                # just process the PDF file as normal
+                result = convert(pdf)
+
+            f.write(f"{json.dumps(result)}\n")
