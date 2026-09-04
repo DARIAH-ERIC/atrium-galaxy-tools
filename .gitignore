@@ -8,3 +8,6 @@ config
 # if you run planemo you end up with lots of cache
 # folders being generated that we don't want to commit
 __pycache__
+
+# don't commit python virtual environments
+venv
