@@ -24,7 +24,7 @@
   <inputs>
     <param name="images" type="data" optional="false" label="Image to process" help="" format="jpg,png" multiple="true"/>
     <param name="paragraphs" type="boolean" optional="true" label="Paragraph mode" help="If true, the OCR will attempt to group text into paragraphs. If false, it will treat each line of text separately." checked="true"/>
-    <param name="languages" optional="false" type="select" label="Language Models" multiple="true" help="Select one or more language models to use.">
+    <param name="languages" optional="false" type="select" label="Languages to Recognise" multiple="true" help="Languages sharing the same written script (e.g., Latin) can be used together. English can be combined with any language.">
       <option value="abq">Abaza</option>
       <option value="ady">Adyghe</option>
       <option value="af">Afrikaans</option>
