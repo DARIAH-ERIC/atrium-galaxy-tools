@@ -9,7 +9,8 @@ import argparse
 class EasyOCR:
 
     def __init__(self, args):
-        self.reader = easyocr.Reader(['en'], gpu=args.gpu)
+        print(args.language)
+        self.reader = easyocr.Reader(args.language, gpu=args.gpu)
 
     def process(self, in_file, out_file, paragraphs=False):
 
@@ -49,6 +50,10 @@ if __name__ == "__main__":
         help="Group text into pragraphs (default is to treat each line separately)")
     parser.add_argument("--gpu", action="store_true",
         help="Use GPU for OCR (default is to use CPU)")
+
+    parser.add_argument("--language", action="append",
+        required=True,
+        help="Language models to use for OCR ")
 
     args = parser.parse_args()
 
