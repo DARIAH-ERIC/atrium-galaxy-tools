@@ -25,13 +25,13 @@
             "outputs": [],
             "position": {
                 "left": 0,
-                "top": 37.99998474121094
+                "top": 173.66665649414062
             },
             "tool_id": null,
             "tool_state": "{\"optional\": false, \"tag\": null, \"collection_type\": \"list\", \"fields\": null, \"column_definitions\": null}",
             "tool_version": null,
             "type": "data_collection_input",
-            "uuid": "f501f80c-0753-4948-a3b8-3d001000c142",
+            "uuid": "d4e51d81-ac81-476b-802d-c23fbf1315a9",
             "when": null,
             "workflow_outputs": []
         },
@@ -41,13 +41,13 @@
             "errors": null,
             "id": 1,
             "input_connections": {
-                "pdf": {
+                "pdfs": {
                     "id": 0,
                     "output_name": "output"
                 }
             },
             "inputs": [],
-            "label": "Extract Text from PDF",
+            "label": "Extract Text",
             "name": "atrium_pdf_text_extraction",
             "outputs": [
                 {
@@ -56,7 +56,7 @@
                 }
             ],
             "position": {
-                "left": 295.3333740234375,
+                "left": 164.3333740234375,
                 "top": 0
             },
             "post_job_actions": {
@@ -67,69 +67,23 @@
                 }
             },
             "tool_id": "atrium_pdf_text_extraction",
-            "tool_state": "{\"ocr\": \"notset\", \"pdf\": {\"__class__\": \"ConnectedValue\"}, \"__page__\": 0, \"__rerun_remap_job_id__\": null}",
+            "tool_state": "{\"ocr\": \"notset\", \"pdfs\": {\"__class__\": \"ConnectedValue\"}, \"__page__\": 0, \"__rerun_remap_job_id__\": null}",
             "tool_uuid": null,
             "tool_version": "1.0.0",
             "type": "tool",
-            "uuid": "b746c0da-6348-440a-89a3-a012b4bc4d6c",
+            "uuid": "9a28af57-eec0-4a1b-be26-5461d5ad7273",
             "when": null,
             "workflow_outputs": []
         },
         "2": {
             "annotation": "",
-            "content_id": "toolshed.g2.bx.psu.edu/repos/nml/collapse_collections/collapse_dataset/5.1.0",
+            "content_id": "atrium_t_4_5_2_ner",
             "errors": null,
             "id": 2,
             "input_connections": {
-                "input_list": {
+                "input": {
                     "id": 1,
                     "output_name": "json"
-                }
-            },
-            "inputs": [],
-            "label": "Generate JSONL",
-            "name": "Collapse Collection",
-            "outputs": [
-                {
-                    "name": "output",
-                    "type": "input"
-                }
-            ],
-            "position": {
-                "left": 559.3334350585938,
-                "top": 104.66665649414062
-            },
-            "post_job_actions": {
-                "HideDatasetActionoutput": {
-                    "action_arguments": {},
-                    "action_type": "HideDatasetAction",
-                    "output_name": "output"
-                }
-            },
-            "tool_id": "toolshed.g2.bx.psu.edu/repos/nml/collapse_collections/collapse_dataset/5.1.0",
-            "tool_shed_repository": {
-                "changeset_revision": "90981f86000f",
-                "name": "collapse_collections",
-                "owner": "nml",
-                "tool_shed": "toolshed.g2.bx.psu.edu"
-            },
-            "tool_state": "{\"filename\": {\"add_name\": false, \"__current_case__\": 1}, \"input_list\": {\"__class__\": \"ConnectedValue\"}, \"one_header\": false, \"__page__\": 0, \"__rerun_remap_job_id__\": null}",
-            "tool_uuid": null,
-            "tool_version": "5.1.0",
-            "type": "tool",
-            "uuid": "d6f6578b-92fa-44bc-bc48-2bae0a89f005",
-            "when": null,
-            "workflow_outputs": []
-        },
-        "3": {
-            "annotation": "",
-            "content_id": "atrium_t_4_5_2_ner",
-            "errors": null,
-            "id": 3,
-            "input_connections": {
-                "input": {
-                    "id": 2,
-                    "output_name": "output"
                 }
             },
             "inputs": [],
@@ -142,8 +96,8 @@
                 }
             ],
             "position": {
-                "left": 301.33343505859375,
-                "top": 312
+                "left": 237.00030517578125,
+                "top": 294.0693705444336
             },
             "post_job_actions": {},
             "tool_id": "atrium_t_4_5_2_ner",
@@ -163,6 +117,6 @@
         }
     },
     "tags": [],
-    "uuid": "3c2d82fc-4b19-4fd7-a74d-64218b20afdc",
-    "version": 4
+    "uuid": "c1c1f152-a382-46ec-93b3-7a06d0f40a39",
+    "version": 9
 }
