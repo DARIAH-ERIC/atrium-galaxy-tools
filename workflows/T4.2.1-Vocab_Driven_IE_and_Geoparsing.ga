@@ -14,13 +14,18 @@
             "errors": null,
             "id": 0,
             "input_connections": {},
-            "inputs": [],
-            "label": null,
+            "inputs": [
+                {
+                    "description": "",
+                    "name": "PDFs to Process"
+                }
+            ],
+            "label": "PDFs to Process",
             "name": "Input dataset collection",
             "outputs": [],
             "position": {
-                "left": 0.0,
-                "top": 0.0
+                "left": 0,
+                "top": 0
             },
             "tool_id": null,
             "tool_state": "{\"optional\": false, \"tag\": null, \"collection_type\": \"list\", \"fields\": null, \"column_definitions\": null}",
@@ -73,7 +78,7 @@
             "name": "Input parameter",
             "outputs": [],
             "position": {
-                "left": 57.0,
+                "left": 57,
                 "top": 488.41054621582026
             },
             "tool_id": null,
@@ -90,13 +95,13 @@
             "errors": null,
             "id": 3,
             "input_connections": {
-                "pdf": {
+                "pdfs": {
                     "id": 0,
                     "output_name": "output"
                 }
             },
             "inputs": [],
-            "label": "Extract Text from PDF",
+            "label": "Extract Text",
             "name": "atrium_pdf_text_extraction",
             "outputs": [
                 {
@@ -105,8 +110,8 @@
                 }
             ],
             "position": {
-                "left": 102.33331298828125,
-                "top": 125.75
+                "left": 314.333251953125,
+                "top": 8.666671752929688
             },
             "post_job_actions": {
                 "HideDatasetActionjson": {
@@ -116,74 +121,23 @@
                 }
             },
             "tool_id": "atrium_pdf_text_extraction",
-            "tool_state": "{\"ocr\": \"notset\", \"pdf\": {\"__class__\": \"ConnectedValue\"}, \"__page__\": 0, \"__rerun_remap_job_id__\": null}",
+            "tool_state": "{\"ocr\": \"notset\", \"pdfs\": {\"__class__\": \"ConnectedValue\"}, \"__page__\": 0, \"__rerun_remap_job_id__\": null}",
             "tool_uuid": null,
             "tool_version": "1.0.0",
             "type": "tool",
-            "uuid": "2985976e-f282-4310-a896-7294e0ecca38",
+            "uuid": "ab542492-df9e-494e-9a2b-611c11d6cf5e",
             "when": null,
             "workflow_outputs": []
         },
         "4": {
             "annotation": "",
-            "content_id": "toolshed.g2.bx.psu.edu/repos/nml/collapse_collections/collapse_dataset/5.1.0",
+            "content_id": "atrium_t_4_1_2_ie",
             "errors": null,
             "id": 4,
             "input_connections": {
-                "input_list": {
+                "input": {
                     "id": 3,
                     "output_name": "json"
-                }
-            },
-            "inputs": [
-                {
-                    "description": "runtime parameter for tool Collapse Collection",
-                    "name": "input_list"
-                }
-            ],
-            "label": null,
-            "name": "Collapse Collection",
-            "outputs": [
-                {
-                    "name": "output",
-                    "type": "input"
-                }
-            ],
-            "position": {
-                "left": 340.66668701171875,
-                "top": 116.66665649414062
-            },
-            "post_job_actions": {
-                "HideDatasetActionoutput": {
-                    "action_arguments": {},
-                    "action_type": "HideDatasetAction",
-                    "output_name": "output"
-                }
-            },
-            "tool_id": "toolshed.g2.bx.psu.edu/repos/nml/collapse_collections/collapse_dataset/5.1.0",
-            "tool_shed_repository": {
-                "changeset_revision": "90981f86000f",
-                "name": "collapse_collections",
-                "owner": "nml",
-                "tool_shed": "toolshed.g2.bx.psu.edu"
-            },
-            "tool_state": "{\"filename\": {\"add_name\": false, \"__current_case__\": 1}, \"input_list\": {\"__class__\": \"RuntimeValue\"}, \"one_header\": false, \"__page__\": 0, \"__rerun_remap_job_id__\": null}",
-            "tool_uuid": null,
-            "tool_version": "5.1.0",
-            "type": "tool",
-            "uuid": "72bb2f74-67a3-4c4c-9f9c-cee4a5e0af8b",
-            "when": null,
-            "workflow_outputs": []
-        },
-        "5": {
-            "annotation": "",
-            "content_id": "atrium_t_4_1_2_ie",
-            "errors": null,
-            "id": 5,
-            "input_connections": {
-                "input": {
-                    "id": 4,
-                    "output_name": "output"
                 }
             },
             "inputs": [],
@@ -196,7 +150,7 @@
                 }
             ],
             "position": {
-                "left": 594.0,
+                "left": 594,
                 "top": 150.08334350585938
             },
             "post_job_actions": {
@@ -215,11 +169,11 @@
             "when": null,
             "workflow_outputs": []
         },
-        "6": {
+        "5": {
             "annotation": "",
             "content_id": "gate-cloud-client",
             "errors": null,
-            "id": 6,
+            "id": 5,
             "input_connections": {
                 "credentials|api_key": {
                     "id": 1,
@@ -230,7 +184,7 @@
                     "output_name": "output"
                 },
                 "input": {
-                    "id": 5,
+                    "id": 4,
                     "output_name": "output"
                 }
             },
@@ -274,6 +228,6 @@
         }
     },
     "tags": [],
-    "uuid": "bbdf594f-08eb-4da3-83c1-ae8a0e8b28b8",
-    "version": 2
+    "uuid": "dec6d305-46a3-4b56-baf9-d18142a6527c",
+    "version": 5
 }

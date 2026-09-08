@@ -10,15 +10,17 @@
   <version_command><![CDATA[echo "1.0.0"]]></version_command>
   <command><![CDATA[python
 '$__tool_directory__/atrium_pdf_text_extraction.py'
+#for pdf in $pdfs#
 --pdf
 '$pdf'
+#end for
 --json
 '$json'
 #if $ocr == "set"
  --ocr
 #end if]]></command>
   <inputs>
-    <param name="pdf" type="data" optional="false" label="PDF file from which to extact text" help="" format="pdf" multiple="false"/>
+    <param name="pdfs" type="data" optional="false" label="PDF file from which to extact text" help="" format="pdf" multiple="true"/>
     <param name="ocr" type="select" label="Should we perform OCR before extracting text?" help="" display="radio">
       <option value="set">Yes</option>
       <option value="notset" selected="true">No</option>
@@ -30,12 +32,12 @@
   <tests>
     <test>
       <output name="json" value="json_sample" compare="diff" lines_diff="0"/>
-      <param name="pdf" value="pdf_sample"/>
+      <param name="pdfs" value="pdf_sample"/>
       <param name="ocr" value="notset"/>
     </test>
     <test>
       <output name="json" value="json_ocr_sample" compare="diff" lines_diff="0"/>
-      <param name="pdf" value="pdf_sample"/>
+      <param name="pdfs" value="pdf_sample"/>
       <param name="ocr" value="set"/>
     </test>
   </tests>
