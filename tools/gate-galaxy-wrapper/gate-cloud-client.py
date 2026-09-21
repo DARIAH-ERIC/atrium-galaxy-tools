@@ -142,7 +142,7 @@ class GateClient:
                         else:
                             # Genuine error response
                             logger.error(response.text)
-                            sys.exi(1)
+                            sys.exit(1)
 
                         if wait_before_next_call > 5.0:
                             logger.info(
