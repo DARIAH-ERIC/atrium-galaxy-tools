@@ -55,7 +55,7 @@
     </test>
   </tests>
   <help><![CDATA[
- Vocabulary-Driven Information Extraction as defined in Task 4.1.2 of the ATRIUM project.
+ Detection of historical place names in text as defined in T4.5.2 of the ATRIUM project.
   ]]></help>
   <citations>
     <!-- leave the ToolFactory citation for now so we pass the linter -->
