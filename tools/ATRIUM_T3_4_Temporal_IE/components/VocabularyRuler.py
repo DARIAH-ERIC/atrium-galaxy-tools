@@ -1,0 +1,200 @@
+"""
+=============================================================================
+Package :   rematch2
+Module  :   VocabularyRuler.py
+Creator :   Ceri Binding, University of South Wales / Prifysgol de Cymru
+Contact :   ceri.binding@southwales.ac.uk
+Project :   
+Summary :   spaCy custom pipeline components (specialized SpanRuler)
+Imports :   BaseRuler, Language, DocSummary
+Example :   N/A - superclass for more specialized components    
+License :   https://github.com/cbinding/rematch2/blob/main/LICENSE.txt
+=============================================================================
+History :   
+10/10/2023 CFB Added language factory function
+27/10/2023 CFB type hints added for function signatures
+28/03/2024 CFB base on SpanRuler instead of EntityRuler
+08/01/2024 CFB Moved normalization into create_vocabulary_ruler, 
+            added supp_list and stop_list config options
+13/06/2024 CFB Simplified to generic Vocabulary Ruler component, AAT and FISH
+            vocabularies moved to config options in pipeline creation function
+=============================================================================
+"""
+from spacy.language import Language
+from pprint import pprint
+from pathlib import Path
+from spacy import displacy
+#from .spacypatterns import *
+from .Util import *
+from .BaseRuler import BaseRuler
+from .DocSummary import DocSummary
+from .ChildSpanRemover import child_span_remover
+from dataclasses import dataclass, asdict, field
+
+'''
+def patt_list_from_json_file(file_name: str) -> list:
+    base_path = (Path(__file__).parent / "vocabularies").resolve()
+    file_path = os.path.join(base_path, file_name)
+    patt_list = []
+    with open(file_path, "r") as f:
+        patt_list = json.load(f)
+        
+    return patt_list
+'''
+
+@Language.factory(
+    name="vocabulary_ruler", 
+    default_config = {
+        "name": "vocabulary_ruler",
+        "default_label": "UNDEFINED",
+        "lemmatize": True,
+        "min_lemm_length": 4,
+        "min_term_length": 3,
+        "token_pos": [],
+        "patt_list": [],
+        "supp_list": [],
+        "stop_list": []
+    })   
+def create_vocabulary_ruler(
+    nlp: Language, # the nlp pipelineobject the component will be added to
+    name: str, # name of the pipeline component (needs to be unique in pipeline)
+    spans_key: str = DEFAULT_SPANS_KEY, # key to store matched spans under
+    default_label: str = "UNDEFINED", # default label to assign to patterns that don't yet have a label specified
+    lemmatize: bool = True, # whether to lemmatize terms for matching (to allow matching of variant inflected forms)
+    min_lemm_length: int = 4, # minimum length of terms to be lemmatized (to avoid over-normalization of short terms)
+    min_term_length: int = 3, # minimum length of terms to be matched (to avoid spurious matches of short common words)
+    token_pos: list[str] = [],   # Part of Speech tag(s) to restrict matching to (e.g. ["NOUN", "PROPN"])
+    patt_list: list = [],  # list of match patterns
+    supp_list: list = [],  # additional patterns to add to the vocabulary
+    stop_list: list = []   # with identifers not to be matched, to exclude specific concepts from results
+    ) -> BaseRuler:
+    
+    # create the base ruler component  
+    ruler = BaseRuler(
+        nlp=nlp,        
+        name=name,
+        spans_key=spans_key,
+        phrase_matcher_attr="LOWER",
+        validate=False,
+        overwrite=False
+    )      
+
+    # get (normalized) patterns including supplementary list    
+    normalized: list = BaseRuler.normalize_patterns(
+        nlp=nlp, 
+        patterns=patt_list + supp_list,
+        default_label=default_label,
+        lemmatize=lemmatize,
+        min_lemm_length=min_lemm_length,
+        min_term_length=min_term_length,
+        token_pos=token_pos
+    )
+
+    # Now filter out any patterns with IDs in the stop_list
+    stop_ids: list = list(map(lambda item: item.get("id", ""), stop_list))    
+    filtered: list = [patt for patt in normalized if patt.get("id", "") not in stop_ids]    
+
+    # Add the filtered patterns to the ruler
+    ruler.add_patterns(filtered)
+    return ruler 
+
+
+# to test this module independently, run from package root:
+# python -m components.VocabularyRuler
+if __name__ == "__main__":
+
+    # sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    # from .spacypatterns import vocab_en_AAT_OBJECTS
+    # from ..spacypatterns import vocab_en_AAT_OBJECTS
+
+    en_test_text1 = '''Aside from three residual flints, none closely datable, the earliest remains from the archeomagnetism comprised a small assemblage of Roman pottery and Lower Paleolithic or Lower Palaeolithic ceramic building material, also residual and most likely derived from a Roman farmstead found immediately to the north within the Phase II excavation area. A single sherd of Anglo-Saxon grass-tempered pottery was also residual. The earliest features, which accounted for the majority of the remains on site, relate to medieval agricultural activity focused within a large enclosure. There was little to suggest domestic occupation within the site: the pottery assemblage was modest and well abraded, whilst charred plant remains were sparse, and, as with some metallurgical residues, point to waste disposal rather than the locations of processing or consumption. A focus of occupation within the Rodley Manor site, on higher ground 160m to the north-west, seems likely, with the currently site having lain beyond this and providing agricultural facilities, most likely corrals and pens for livestock. Animal bone was absent, but the damp, low-lying ground would have been best suited to cattle. An assemblage of medieval coins recovered from the subsoil during a metal detector survey may represent a dispersed hoard.'''
+    en_test_text2 = '''
+    mola conducted an archaeological desk-based heritage assessment including radiocarbon dating of land at fakenham road, great ryburgh, norfolk. the earliest archaeological evidence found dates from the mesolithic period. neolithic flint tools have been found close to the west and north-west of the site. a possible bronze age ring ditch has been identified to the north-east and finds dating to the period have been discovered through metal detecting surveys. iron age remains including pits and pottery have been found within the area of proposed development through trial trenching. the site lies between two roman settlements on the south-western banks of the river wensum. one lies nearby to the north-west of the site and numerous finds including coins have been discovered during a fieldwalking survey. a further roman settlement lies to the south-east where two enclosures, two kilns and two burials have recently been excavated. a middle saxon cemetery, drainage ditches, an enclosure, land divisions and a substantial boundary ditch have also recently been discovered to the south-east of the site. metal finds dating to the period have also been found to the north-west and to the east of the site during metal detecting surveys. the site lies beyond the historic core of great ryburgh. the medieval settlement developed around the junction of fakenham road and bridge road to the west of the river wensum, flanked by the medieval moated manor of ryburgh at the northern end and by st andrew's church to the south. cartographic evidence suggests that the site lay to the rear of properties fronting fakenham road during the post-medieval period and had remained as undeveloped farmland.'''
+    en_test_text3 = '''
+    The Excavation revealed a wealth of archaeological information. The earliest period was represented by residual finds of a Mesolithic worked flint axe in a medieval plough furrow and Bronze Age aurochs bone in an Iron Age pit. The Iron Age period consisted of several phases of a Banjo Enclosure with associated roundhouses, four-post structures, boundary ditches, pits and a quarry. In the early Roman period there was little activity other than quarrying, but later a farmstead was established with an agricultural system reminiscent of a vineyard. No evidence was recovered for the Saxon period, even as residual finds in later contexts, and thus it is assumed that the site was either unused by the population at that time, or subject to a regime that has left no trace in the archaeological record. In the medieval period a ridge and furrow cultivation system was established that cut across many earlier features but incorporated surprisingly little material from earlier periods. After the medieval period, the site appears to have been largely abandoned until Enclosure. The two phases of work took place between March - May 2000 and subsequently between August - October 2001 by CAM ARC, Cambridgeshire County Council (formerly the Archaeological Field Unit).
+    '''
+    en_test_text4 = '''
+    in autumn 2008 a programme of archaeological excavation was undertaken  at titnore lane, goring-by-sea.  the excavation was conducted across the full area of the 2.2 hectare site.    a wide range of periods were represented on site, incorporating the mesolithic, neolithic, bronze age, iron age, romano-british, medieval, and later post-medeival activity. the features and finds assemblage associated with the mesolithic and neolithic were limited, representing only a periodic use of the site. the key feature associated with mid to late bronze age activity was a c.3.5m wide trackway identified as running north-south across the site. by the late bronze age/early iron age period the first evidence of settlement was identified, formed of a roundhouse, pits and a possible livestock corral. the mid to late iron age period saw a growth in settlement with several phases of roundhouse construction associated with boundary ditches, pitting, further possible corrals and  the creation of an artificial pond adjacent to the settlement. the settlement had disappeared by the 1st century ad replaced by a series of field boundaries and rubbish pits thought to part of the villa complex known immediately to the south of the site. romano-british activity did not survive beyond the early to mid 2nd century. a large enclosure and field boudary were found on site dated to the 12th to 14th century. post-medeival and modern activity were limited on site. overall, a high density of archaeologicaly significant features were identified during the course of the excavation from a wide range of periods.
+    '''
+    en_test_text5 = '''
+    During the burial ground survey, evidence of a late Roman fort was located near the earlier Neolithic flint knapping site. Fragments of a roofing nail were found.
+    '''
+    en_test_text6 = '''
+    An archaeological excavation on land at Riverside (East of Steamer Quay Road), Totnes,  Devon (SX 8104 5981), was undertaken by AC archaeology during September 2014 and July 2015. Three areas were excavated centred on a series archaeological features identified  during previous trial trenching. Evidence for background prehistoric activity dating from the Mesolithic through to the Early  Bronze Age was identified. No in situ features were securely dated to this period, although a  number of natural tree throws could be associated with this phase of activity. A pit furnace for  iron working excavated during the earlier trial trenching has subsequently been radiocarbon  dated to the 4th-6th centuries AD. Evidence for limited agricultural activity dating from the  Romano-British through to the modern period was also recorded. Finds recovered comprise  small quantities of pottery dating from the prehistoric through to the post-medieval period,  several metal objects, ceramic building material, glass, clay tobacco pipe and prehistoric  worked flint, including a barbed and tanged arrowhead.
+    '''
+
+    # Czech test (using Polish spaCy language model as Czech not available)
+    # https://digiarchiv.aiscr.cz/id/C-201806206A-K02
+    cs_test_text1 = '''
+    Objekt 2 V severním profilu základového pasu pro rodinný dům byl zachycen objekt konického tvaru s rozšířeným rovným dnem. Parcela: st. p. č. 164 a 165 Souřadnice S-JTSK: 722512/1051371 Nadmořská výška: 333 m n. m. Rozměry: délka 1, 66 m; hloubka 0, 7 m Výplň: Nadloží objektu tvořila cca 30 cm silná vrstva silně hrudkovité velkým množstvím malých kořínků protkané šedé ornice. Horních cca 40 cm výplně objektu tvořila světlešedá až béžově okrová prachovitá hlína promíšená drobnými zlomky mazanice. Spodní cca 30 cm silná část výplně objektu tvořila tmavě šedá až okrová prachová hlína silně promíšená s rozplavenou mazanicí a drobnými zlomky keramiky. Podloží sprašová hlína. Nálezy: keramika 14 zl., mazanice 2 zl., kámen 2 zl. (1x záměrně opracovaný křemen – jádro?) Datovaní: neolit (LnK?), pravěk
+    '''
+    cs_test_text2 = '''
+    Objekt 5 V jižním profilu základového pasu pro rodinný dům byla zachycena část objektu s nepravidelně zahloubeným dnem s pozůstatky ohnišť (dvě uhlíkaté vrstvy na dnech zahloubení). Parcela: ppč. 68/42 Souřadnice S-JTSK: 722398/1051486 Nadmořská výška: 332 m n. m. Rozměry: délka 1, 41 m; hloubka 0, 46 m Výplň: Pod až 28 cm silnou vrstvou ornice tvořené šedohnědou do bločků se rozpadávající jílovité hlíny, zachycena 36 cm silná vrstva šedohnědé jílovité hlíny obsahující zlomky mazanice, kaménků a keramiky. Na dně zahloubení byla zaznamenána 4 až 11 cm silná černá uhlíkatá vrstva. Podloží bylo tvořeno světlehnědými tvrdými jíly. Nálezy: keramika 4 zl., mazanice 5 zl. Datovaní: středověk Objekt 6 Na rozhraní severního a západního profilu základového pasu pro rodinný dům byl zachycen objekt mělce mísovitého tvaru. Parcela: ppč. 68/42 Souřadnice S-JTSK: 722398 /1051485 Nadmořská výška: 332 m n. m. Rozměry: severní profil: délka 0, 74 m; hloubka 0, 51 m, západní profil: délka 1, 95 m; hloubka 0, 51 m Výplň: Pod až 20 cm silnou vrstvou ornice tvořené šedohnědou do bločků se rozpadávající jílovité hlíny, zachycena až 51 cm silná vrstva šedé jílovité hlíny obsahující zlomky keramiky. Podloží bylo tvořeno světlehnědými tvrdými jíly. Nálezy: keramika 6 zl. Datovaní: středověk
+    '''
+    cs_test_text3 = '''
+    Objekt zámku v Chanovicích (okr. Klatovy) se nalézá spolu s pozdně románským
+    kostelem sv. Kříže na severozápadním okraji obce. Byl postaven na nevýrazné ostrožně, jejíž
+    páteř vytvářejí výchozy žulové skály. Ze tří stran sídlo obklopuje zpustlý park s rybníkem
+    v jeho dolní části. Na severovýchodní straně pak k zámku přiléhá areál hospodářského dvora.
+    Nejstarším dokladem existence chanovického sídla je pozdně románský kostel Povýšení
+    sv. Kříže. Jako vlastnický kostel se patrně vázal na zde již existující feudální sídlo.
+    Předpokládá se, že leželo v místech pozdějšího poplužního dvora, dnes dochovaného
+    v klasicistní přestavbě. V průběhu 13. stol. bylo sídlo přeneseno na skalnatou ostrožnu, do
+    míst dnešního zámku.
+    V písemných pramenech se Chanovice objevují ve 2. polovině 14. století. Z této doby
+    pochází též nejstarší dochovaná gotická část sídla. K výrazné přestavbě objektu došlo v
+    prvních desetiletích 16. století za Chanovských z Dlouhé Vsi, kdy stavba nabyla dnešní
+    půdorysné podoby. Areál byl ohrazen novou, značně silnou obvodovou zdí, respektující v
+    některých úsecích starší konstrukce. Roku 1670 byla Chanovicím odpuštěna část berní
+    povinnosti, což snad naznačuje, že obec v této době postihla jakási živelná pohroma.
+    Do podoby sídla výrazně zasáhla barokní přestavba, ke které došlo někdy okolo
+    poloviny 18. století za majitele Ferdinanda Jáchyma Rumerskirchena. Dílčí zásahy do stavby
+    nastaly patrně také po ničivém požáru roku 1781, při kterém vyhořel kostel, fara, škola a
+    zámek spolu s hospodářskými budovami přilehlého dvora.
+    Na přelomu 18. a 19. stol. zámek rychle střídal majitele a pustnul. Písemné prameny
+    uvádí, že roku 1811 objekt, v té době ve velmi špatném stavu, koupil plzeňský podnikatel
+    František Becher. Ten nechal sejmout jedno patro, zámek opravil a pokryl těžkou krytinou.
+    Úpravám se nevyhnul ani chanovický hospodářský dvůr. Částečně ho nechal přestavět na
+    konci 19. stol. nový majitel Eduard Rytíř z Doubků. Poslední známá úprava hospodářského
+    dvora byla projekčně připravována v roce 1901. (Anderle – Ebel 1996)
+    '''
+    #nlp = spacy.load("pl_core_news_sm", disable=['ner'])
+    #nlp.add_pipe("amcr_ruler", last=True)
+    #doc = nlp(cs_test_text2)
+
+    # create pipeline and add one or more custom pipeline components
+
+    nlp = load_pipeline_for_language("en")    
+    nlp.add_pipe("text_normalizer", first=True)
+    nlp.add_pipe("vocabulary_ruler", 
+        name = "object_types_ruler",
+        last = True, 
+        config = {
+            "default_label": "FISH_OBJECT",
+            "token_pos": ["NOUN"],            
+            "patt_list": read_json_file("./vocabularies/patterns_FISH_mda_obj_20260513.json")
+        }
+    ) 
+    nlp.add_pipe("child_span_remover", last=True)
+    nlp.add_pipe("span_scorer", last=True) 
+
+    doc = nlp(en_test_text2)
+    # explacy.print_parse_info(nlp, en_test_text.lower())
+    print("Tokens:\n" + DocSummary(doc).tokens_to_text())
+    print("Spans:\n" + DocSummary(doc).spans_to_text())
+
+    options = {
+        "spans_key": DEFAULT_SPANS_KEY,
+        "colors": {
+            "DATEPREFIX": "lightgray",
+            "FISH_OBJECT": "plum",
+            "FISH_MONUMENT": "lightblue",
+            "FISH_ARCHSCIENCE": "lightpink",
+            "AAT_ACTIVITY": "lightsalmon",
+            "FISH_EVIDENCE": "aliceblue",
+            "FISH_MATERIAL": "antiquewhite",
+            "FISH_EVENT": "coral",
+            "FISH_PERIOD": "yellow"
+        }
+    }
+    displacy.serve(doc, style="span", options=options, auto_select_port=True)
