@@ -23,7 +23,7 @@
 '$output']]></command>
   <inputs>
     <param name="input" type="data" optional="false" label="Input JSON file" help="" format="json" multiple="false"/>
-    <param name="model" type="select">
+    <param name="model" type="select" label="spaCy model to use: is intended to always be en_deberta_v3_base_ner_historical_place" help="The spaCy model to use for named entity recognition. For this tool the model should always be en_deberta_v3_base_ner_historical_place which is a custom model trained on historical place names.">
             <options from_data_table="spacy_models">
                 <column name="value" index="0"/>
                 <column name="name" index="1"/>
