@@ -60,7 +60,13 @@ RUN apt-get update && \
 # Keeping the versions pinned makes the runtime reproducible and avoids a
 # tool silently changing behaviour when upstream packages publish new
 # releases.
-RUN python -m pip install --no-cache-dir \
+#
+# Note that the extra index URL is provided so that we install the CPU-only
+# PyTorch packages which are much smaller: the image layer drops from 6.75GB 
+# to just 2GB when we use the CPU only modules, and given we don't have GPU
+# support on the cluster this should result in pods starting quicker etc.
+RUN --mount=type=cache,target=/root/.cache/pip pip install \
+    --extra-index-url https://download.pytorch.org/whl/cpu \
     spacy==3.8.14 \
     spacy-transformers==1.4.0 \
     click==8.4.1 \
@@ -73,7 +79,9 @@ RUN python -m pip install --no-cache-dir \
     ocrmypdf==17.7.0 \
     fpdf2==2.8.4 \
     huggingface_hub==0.36.0 \
-    transformers==4.53.2
+    transformers==4.53.2 \
+    easyocr==1.7.2 \
+    pytesseract==0.3.13
 
 
 # Install the default English spaCy model used by the IE tools.
@@ -109,12 +117,17 @@ import spacy
 import spacy_transformers
 import huggingface_hub
 import transformers
+import easyocr
+import pytesseract
 
 print("Python:", sys.version)
 print("spaCy:", spacy.__version__)
 print("pypdf:", pypdf.__version__)
 print("OCRmyPDF:", ocrmypdf.__version__)
 print("Transformers:", transformers.__version__)
+print("EasyOCR:", easyocr.__version__)
+print("PyTesseract:", pytesseract.__version__)
+print("Tesseract:", pytesseract.get_tesseract_version())
 print("ATRIUM Python runtime dependency check: OK")
 PY
 
