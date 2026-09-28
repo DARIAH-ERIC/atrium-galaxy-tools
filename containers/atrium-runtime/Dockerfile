@@ -120,6 +120,12 @@ import transformers
 import easyocr
 import pytesseract
 
+# this ensures we download both the English and Latin models as well
+# as the text detection model into the image so they do not need
+# downloading each time we run the tool: other languages will be though
+easyocr.Reader(["en"], gpu=False, detector=True, recognizer=True)
+easyocr.Reader(["de"], gpu=False, detector=True, recognizer=True)
+
 print("Python:", sys.version)
 print("spaCy:", spacy.__version__)
 print("pypdf:", pypdf.__version__)
