@@ -1,0 +1,48 @@
+name: Build ATRIUM Galaxy image
+
+on:
+  pull_request:
+    paths:
+      - containers/atrium-galaxy/**
+      - .github/workflows/build-atrium-galaxy.yml
+  push:
+    branches:
+      - main
+    paths:
+      - containers/atrium-galaxy/**
+      - .github/workflows/build-atrium-galaxy.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and publish Galaxy image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: containers/atrium-galaxy/Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: |
+            ghcr.io/dariah-eric/atrium-galaxy:26.1.1-iiif-0.1.1
+            ghcr.io/dariah-eric/atrium-galaxy:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
