@@ -50,7 +50,7 @@ def process(input: Path, model: Path, output: Path):
 
                 for annotation in annotations:
                     spans.append({
-                        "label": "GEO" if isinstance(annotation.label, Number) else annotation.label,
+                        "label": annotation.label_,
                         "start": annotation.start_char,
                         "end": annotation.end_char,
                         "span_text": text[annotation.start_char:annotation.end_char]
