@@ -11,6 +11,8 @@ import shutil
 from json import JSONDecoder
 from functools import partial
 
+from numbers import Number
+
 logger = logging.getLogger(__name__)
 
 # https://stackoverflow.com/a/21709058
@@ -48,7 +50,7 @@ def process(input: Path, model: Path, output: Path):
 
                 for annotation in annotations:
                     spans.append({
-                        "label": "PLACE",
+                        "label": "GEO" if isinstance(annotation.label, Number) else annotation.label,
                         "start": annotation.start_char,
                         "end": annotation.end_char,
                         "span_text": text[annotation.start_char:annotation.end_char]
