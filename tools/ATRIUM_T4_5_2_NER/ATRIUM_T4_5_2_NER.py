@@ -18,16 +18,32 @@ logger = logging.getLogger(__name__)
 # https://stackoverflow.com/a/21709058
 def json_parse(fileobj, decoder=JSONDecoder(), buffersize=2048):
     buffer = ''
+    is_json = False
     for chunk in iter(partial(fileobj.read, buffersize), ''):
         buffer += chunk
         while buffer:
             try:
                 result, index = decoder.raw_decode(buffer)
+                is_json = True
                 yield result
                 buffer = buffer[index:].lstrip()
             except ValueError:
                 # Not enough data to decode, read more
                 break
+
+    # if we have got to here without emitting a single JSON object, then we have a
+    # non-JSON file, so just yield the whole buffer as a single object
+    # Note that this should be fine unless the file was a malformed JSON file missing
+    # a closing bracket, in which case we will just yield the whole file as a single
+    # object, which is probably not what the user wanted, but at least it won't crash
+    # and if the user is feeding invalid JSON then that's their problem.
+    if not is_json:
+        buffer = buffer.strip()
+        if len(buffer) > 0:
+            yield {
+                "text": buffer
+            }
+
 
 def process(input: Path, model: Path, output: Path):
     logger.info("Reading input file '%s'", input)
