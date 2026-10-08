@@ -28,6 +28,9 @@ FROM python:3.12.13-slim
 # tesseract-ocr:
 #   OCR engine used by atrium_pdf_text_extraction.
 #
+# poppler-utils:
+#   Provides pdfimages for PDF input processing by the Tesseract wrapper.
+#
 # ghostscript:
 #   Used internally by OCRmyPDF for PDF processing.
 #
@@ -43,6 +46,7 @@ FROM python:3.12.13-slim
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         tesseract-ocr \
+        poppler-utils \
         ghostscript \
         qpdf \
         pngquant \
@@ -62,7 +66,7 @@ RUN apt-get update && \
 # releases.
 #
 # Note that the extra index URL is provided so that we install the CPU-only
-# PyTorch packages which are much smaller: the image layer drops from 6.75GB 
+# PyTorch packages which are much smaller: the image layer drops from 6.75GB
 # to just 2GB when we use the CPU only modules, and given we don't have GPU
 # support on the cluster this should result in pods starting quicker etc.
 RUN --mount=type=cache,target=/root/.cache/pip pip install \
@@ -140,6 +144,9 @@ PY
 
 # Verify that the OCR executable is also present.
 RUN tesseract --version | head -1
+
+# Verify that PDF image extraction is available during the image build.
+RUN command -v pdfimages && pdfimages -v
 
 
 # Galaxy's Kubernetes runner provides the actual command that should be
