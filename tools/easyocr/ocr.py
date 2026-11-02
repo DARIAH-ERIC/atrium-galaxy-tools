@@ -57,7 +57,7 @@ class EasyOCR:
     def write_jsonl(self, in_files, out_file, pages):
         """Write the OCR result out as TIDES JSONL"""
         
-        with open(out_file+".json", "w") as f:
+        with open(out_file+".jsonl", "w") as f:
             for page in pages:
 
                 bounding_boxes = []
@@ -344,7 +344,7 @@ class EasyOCR:
         xml_declaration = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
 
         with open(out_file+".page.xml", "w") as f:
-                    f.write(xml_declaration + raw_xml)
+            f.write(xml_declaration + raw_xml)
 
 
     def write_tsv(self, in_files, out_file, pages):
