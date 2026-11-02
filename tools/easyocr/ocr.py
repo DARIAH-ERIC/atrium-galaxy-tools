@@ -4,6 +4,7 @@ import json
 from os import listdir
 from os.path import isfile, join
 import warnings
+import datetime
 
 import argparse
 
@@ -266,6 +267,84 @@ class EasyOCR:
             f.write(xml_declaration + doctype + raw_xml)
 
 
+    def write_page(self, in_files, out_file, pages):
+        
+        # 3. Setup PAGE XML Namespace (Latest stable schema url)
+        PAGE_NS = "http://primaresearch.org"
+        ET.register_namespace('', PAGE_NS)
+        
+        # Root Element: PcGts
+        root = ET.Element(f"{{{PAGE_NS}}}PcGts")
+        
+        # Metadata Block
+        metadata = ET.SubElement(root, f"{{{PAGE_NS}}}Metadata")
+        creator = ET.SubElement(metadata, f"{{{PAGE_NS}}}Creator")
+        creator.text = "EasyOCR to PAGE XML Converter"
+        created = ET.SubElement(metadata, f"{{{PAGE_NS}}}Created")
+        created.text = datetime.datetime.now().isoformat()
+        last_mod = ET.SubElement(metadata, f"{{{PAGE_NS}}}LastChange")
+        last_mod.text = datetime.datetime.now().isoformat()
+
+        for page_idx, image_path in enumerate(in_files):
+        
+            # Get metadata per image file
+            img_width, img_height = self.get_image_dimensions(image_path)
+        
+            # Page Element
+            page = ET.SubElement(root, f"{{{PAGE_NS}}}Page", attrib={
+                "imageFilename": image_path,
+                "imageWidth": str(img_width),
+                "imageHeight": str(img_height)
+            })
+
+            ocr_results = pages[page_idx]
+
+            # 4. Parse EasyOCR bounds into PAGE XML Regions
+            # Note: EasyOCR returns independent word/line fragments. We map each to a TextRegion
+            for idx, (bbox, text, confidence) in enumerate(ocr_results):
+                # Format the 4 corners into standard PAGE space-separated points: "x1,y1 x2,y2..."
+                points_str = " ".join([f"{int(pt[0])},{int(pt[1])}" for pt in bbox])
+                
+                # Create a layout text region
+                text_region = ET.SubElement(page, f"{{{PAGE_NS}}}TextRegion", attrib={
+                    "id": f"region_{idx}",
+                    "type": "paragraph"
+                })
+                
+                # Geometrical Boundary
+                coords_region = ET.SubElement(text_region, f"{{{PAGE_NS}}}Coords", attrib={"points": points_str})
+                
+                # Text Line hierarchy inside the region
+                text_line = ET.SubElement(text_region, f"{{{PAGE_NS}}}TextLine", attrib={"id": f"line_{idx}"})
+                coords_line = ET.SubElement(text_line, f"{{{PAGE_NS}}}Coords", attrib={"points": points_str})
+                
+                # Optional: Add Word-level tagging if you require strict ground-truth detail
+                word = ET.SubElement(text_line, f"{{{PAGE_NS}}}Word", attrib={"id": f"word_{idx}"})
+                coords_word = ET.SubElement(word, f"{{{PAGE_NS}}}Coords", attrib={"points": points_str})
+                
+                # Unicode Text Content assignment
+                text_equiv = ET.SubElement(word, f"{{{PAGE_NS}}}TextEquiv", attrib={"conf": f"{confidence:.4f}"})
+                unicode_val = ET.SubElement(text_equiv, f"{{{PAGE_NS}}}Unicode")
+                unicode_val.text = text
+                
+                # Bubble up TextEquiv to Line Level for consumer tool parsing
+                line_equiv = ET.SubElement(text_line, f"{{{PAGE_NS}}}TextEquiv", attrib={"conf": f"{confidence:.4f}"})
+                line_unicode = ET.SubElement(line_equiv, f"{{{PAGE_NS}}}Unicode")
+                line_unicode.text = text
+
+        # 5. Format and Serialize
+        try:
+            ET.indent(root, space="  ", level=0)
+        except AttributeError:
+            pass  # Fallback for Python versions older than 3.9
+            
+        raw_xml = ET.tostring(root, encoding="utf-8", method="xml").decode("utf-8")
+        xml_declaration = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+
+        with open(out_file+".page.xml", "w") as f:
+                    f.write(xml_declaration + raw_xml)
+
+
 
 if __name__ == "__main__":
 
@@ -282,7 +361,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--format",
         action="append",
-        choices=['txt',"jsonl","alto","hocr"],
+        choices=['txt',"jsonl","alto","hocr","page"],
         help="the output formats to write (if not specified JSONL will be produced)")
         
     parser.add_argument("--paragraphs", action="store_true",
