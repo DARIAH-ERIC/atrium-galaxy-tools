@@ -9,6 +9,8 @@ import datetime
 import argparse
 
 import cv2
+import csv
+import io
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
@@ -345,6 +347,66 @@ class EasyOCR:
                     f.write(xml_declaration + raw_xml)
 
 
+    def write_tsv(self, in_files, out_file, pages):
+        
+        # Define Tesseract TSV headers
+        headers = ["level", "page_num", "block_num", "par_num", "line_num", "word_num", "left", "top", "width", "height", "conf", "text"]
+
+        with open(out_file+".tsv", "w") as f:
+        
+            writer = csv.DictWriter(f, fieldnames=headers, delimiter='\t', lineterminator='\n')
+            
+            # Write the header row
+            writer.writeheader()
+
+            for page_idx, image_path in enumerate(in_files):
+
+                ocr_results = pages[page_idx]
+            
+                for idx, res in enumerate(ocr_results):
+                    bbox, text, conf = res
+                    
+                    # EasyOCR bbox format: [[tl_x, tl_y], [tr_x, tr_y], [br_x, br_y], [bl_x, bl_y]]
+                    tl_x, tl_y = int(bbox[0][0]), int(bbox[0][1])
+                    br_x, br_y = int(bbox[2][0]), int(bbox[2][1])
+                    
+                    # Calculate bounding box dimensions
+                    left = tl_x
+                    top = tl_y
+                    width = br_x - tl_x
+                    height = br_y - tl_y
+                    
+                    # Scale EasyOCR confidence (0.0 - 1.0) to Tesseract scale (0 - 100)
+                    tesseract_conf = int(conf * 100)
+                    
+                    # Map row data to the Tesseract schema
+                    row = {
+                        # 1=Page, 2=Block, 3=Paragraph, 4=Line, 5=Word
+                        # Tricky to know which level to set this to given
+                        # we sometime get single words and sometime multiple
+                        # words (especially if the paragraph option is set)
+                        "level": 5,
+                        "page_num": page_idx+1,
+
+                        # these all use the bounding box index which is
+                        # probably not correct, especially for the word number
+                        # but it does at least mean they increase as we work
+                        # through the page
+                        "block_num": idx + 1,
+                        "par_num": idx + 1,
+                        "line_num": idx + 1,
+                        "word_num": idx + 1,
+
+                        "left": left,
+                        "top": top,
+                        "width": width,
+                        "height": height,
+                        "conf": tesseract_conf,
+                        "text": text
+                    }
+
+                    writer.writerow(row)
+
 
 if __name__ == "__main__":
 
@@ -361,7 +423,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--format",
         action="append",
-        choices=['txt',"jsonl","alto","hocr","page"],
+        choices=['txt',"jsonl","alto","hocr","page","tsv"],
         help="the output formats to write (if not specified JSONL will be produced)")
         
     parser.add_argument("--paragraphs", action="store_true",
