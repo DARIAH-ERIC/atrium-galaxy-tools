@@ -1,0 +1,10 @@
+Workflow documentation template (work in progress)
+
+- input file: [provide a direct stable URI to the file used, if possible]
+  - language of text: [provide info about language of the text on the image as it's relevant for the language model]
+- workflow name: [copy-paste name of workflow used]
+  - workflow link: [link to Galaxy workflow used or (tbd) link to downloaded workflow persisted in git?]
+  - workflow version: [copy-paste textual description containing information about version]
+- engine: [provide name of engine used]
+- model: [provide link to model used]
+- output: [provide stable link to output persisted in git-repo]
