@@ -3,37 +3,409 @@ import sys
 import json
 from os import listdir
 from os.path import isfile, join
+import warnings
+import datetime
 
 import argparse
+
+import cv2
+import csv
+import io
+import xml.etree.ElementTree as ET
+from xml.dom import minidom
+
+# strangely EasyOCR pins the memory even when we set GPU to false which
+# results in a warning message, so we supress it to avoid confusding people
+warnings.filterwarnings(
+    "ignore",
+    message=".*'pin_memory' argument is set as true but no accelerator is found.*",
+)
 
 class EasyOCR:
 
     def __init__(self, args):
-        print(args.language)
+        self.paragraphs = args.paragraphs
         self.reader = easyocr.Reader(args.language, gpu=args.gpu)
 
-    def process(self, in_file, out_file, paragraphs=False):
 
-        result = self.reader.readtext(in_file, paragraph=paragraphs)
+    def process(self, in_file):
 
-        bounding_boxes = []
-        text = ""
+        return self.reader.readtext(in_file,paragraph=self.paragraphs)
 
-        for r in result:
-            bounding_boxes.append({
-                "content": r[1],
-                "box": r[0]
-            })
-            text = text + " " + r[1]
 
-        document = {
-            "meta": {
-                "bounding_boxes": bounding_boxes
+    def get_image_dimensions(self, image_path):
+        """Reads the image to get pixel dimensions"""
+        img = cv2.imread(image_path)
+        if img is None:
+            raise FileNotFoundError(f"Could not load image at {image_path}")
+        height, width, _ = img.shape
+        return width, height
+
+
+    def write_txt(self, in_files, out_file, pages):
+        """Write the OCR result out as plain text"""
+
+        text = []
+
+        for page in pages:
+            text.append(" ".join([r[1] for r in page]))
+
+        with open(out_file+".txt", "w") as f:
+            f.write("\n\n".join(text))
+
+
+    def write_jsonl(self, in_files, out_file, pages):
+        """Write the OCR result out as TIDES JSONL"""
+        
+        with open(out_file+".jsonl", "w") as f:
+            for page in pages:
+
+                bounding_boxes = []
+                text = ""
+        
+                for r in page:
+                    bounding_boxes.append({
+                        "content": r[1],
+                        "box": r[0]
+                    })
+                    text = text + " " + r[1]
+        
+                document = {
+                    "meta": {
+                        "bounding_boxes": bounding_boxes
+                    },
+                    "text": text.strip()
+                }
+
+                f.write(f"{json.dumps(document, default=int)}\n")
+
+
+    def write_alto(self, in_files, out_file, pages):
+        """Writes the OCR result as ALTO XML"""
+
+        # note that this was generated mostly by Google Gemini.
+        # it looks like it works but it needs testing properly
+        # and the output validating against the ALTO schema
+
+        # 2. Build Base XML Structure (ALTO v3 Namespace)
+        ns = "http://loc.gov"
+        ET.register_namespace("", ns)
+
+        root = ET.Element(
+            f"{{{ns}}}alto",
+            {
+                "xmlns:xsi": "http://w3.org",
+                "xsi:schemaLocation": f"{ns} http://loc.gov",
             },
-            "text": text.strip()
-        }
+        )
 
-        return document
+        # Description Section (Metadata)
+        description = ET.SubElement(root, f"{{{ns}}}Description")
+        measurement = ET.SubElement(description, f"{{{ns}}}MeasurementUnit")
+        measurement.text = "pixel"
+
+        # Layout Section (This container will host all our separate pages)
+        layout = ET.SubElement(root, f"{{{ns}}}Layout")
+
+        source_info = ET.SubElement(description, f"{{{ns}}}sourceImageInformation")
+
+        for page_idx, image_path in enumerate(in_files):
+
+            # Get metadata per image file
+            img_width, img_height = self.get_image_dimensions(image_path)
+
+            # Create a new Page element
+            page = ET.SubElement(
+                layout,
+                f"{{{ns}}}Page",
+                {
+                    "ID": f"PAGE_{page_idx}",
+                    "HEIGHT": str(img_height),
+                    "WIDTH": str(img_width),
+                    "PHYSICAL_IMG_NR": str(page_idx),
+                },
+            )
+
+            # Canvas bounding box wrapper
+            print_space = ET.SubElement(
+                page,
+                f"{{{ns}}}PrintSpace",
+                {
+                    "HEIGHT": str(img_height),
+                    "WIDTH": str(img_width),
+                    "HPOS": "0",
+                    "VPOS": "0",
+                },
+            )
+
+            # Core paragraph block segment
+            text_block = ET.SubElement(
+                print_space,
+                f"{{{ns}}}TextBlock",
+                {
+                    "ID": f"BLOCK_P{page_idx}_B0",
+                    "HEIGHT": str(img_height),
+                    "WIDTH": str(img_width),
+                    "HPOS": "0",
+                    "VPOS": "0",
+                },
+            )
+
+            # Run model inference on active file target
+            ocr_results = pages[page_idx]
+
+            # 4. Map EasyOCR items into this page's layout
+            for line_idx, (bbox, text, confidence) in enumerate(ocr_results):
+                xs = [pt[0] for pt in bbox]
+                ys = [pt[1] for pt in bbox]
+
+                hpos = int(min(xs))
+                vpos = int(min(ys))
+                width = int(max(xs) - hpos)
+                height = int(max(ys) - vpos)
+
+                # Generate individual TextLine
+                text_line = ET.SubElement(
+                    text_block,
+                    f"{{{ns}}}TextLine",
+                    {
+                        "ID": f"LINE_P{page_idx}_{line_idx}",
+                        "HPOS": str(hpos),
+                        "VPOS": str(vpos),
+                        "WIDTH": str(width),
+                        "HEIGHT": str(height),
+                    },
+                )
+
+                # Generate matching underlying element text string
+                ET.SubElement(
+                    text_line,
+                    f"{{{ns}}}String",
+                    {
+                        "ID": f"STR_P{page_idx}_{line_idx}",
+                        "CONTENT": text,
+                        "WC": f"{confidence:.4f}",
+                        "HPOS": str(hpos),
+                        "VPOS": str(vpos),
+                        "WIDTH": str(width),
+                        "HEIGHT": str(height),
+                    },
+                )
+
+        # 5. Format & Save output XML with pretty indentation
+        xml_str = ET.tostring(root, encoding="utf-8")
+        parsed_xml = minidom.parseString(xml_str)
+        pretty_xml_str = parsed_xml.toprettyxml(indent="    ", encoding="utf-8")
+
+        with open(out_file+".xml", "wb") as f:
+            f.write(pretty_xml_str)
+
+
+    def write_hocr(self, in_files, out_file, pages):
+        
+        # 1. Create Root Node (html) with namespaces
+        # Note: ElementTree handles the default namespace via the '{}' prefix pattern or registering it
+        XHTML_NS = "http://www.w3.org/1999/xhtml"
+        ET.register_namespace('', XHTML_NS)
+        
+        root = ET.Element(f"{{{XHTML_NS}}}html", attrib={
+            "lang": "en",
+            f"{{http://www.w3.org/1999/xhtml}}lang": "en"
+        })
+        
+        # 2. Build Head
+        head = ET.SubElement(root, f"{{{XHTML_NS}}}head")
+        title = ET.SubElement(head, f"{{{XHTML_NS}}}title")
+        title.text = "EasyOCR to hOCR Conversion"
+        
+        ET.SubElement(head, f"{{{XHTML_NS}}}meta", attrib={"http-equiv": "Content-Type", "content": "text/html;charset=utf-8"})
+        ET.SubElement(head, f"{{{XHTML_NS}}}meta", attrib={"name": "ocr-system", "content": "EasyOCR"})
+        ET.SubElement(head, f"{{{XHTML_NS}}}meta", attrib={"name": "ocr-capabilities", "content": "ocr_page ocr_carea ocr_line ocrx_word"})
+        
+        # 3. Build Body and Page Frame
+        body = ET.SubElement(root, f"{{{XHTML_NS}}}body")
+
+        for page_idx, image_path in enumerate(in_files):
+        
+            # Get metadata per image file
+            img_width, img_height = self.get_image_dimensions(image_path)
+
+            page_title = f"image '{image_path}'; bbox 0 0 {img_width} {img_height}; ppageno 0"
+            page_div = ET.SubElement(body, f"{{{XHTML_NS}}}div", attrib={"class": "ocr_page", "id": "page_1", "title": page_title})
+
+            # Run model inference on active file target
+            ocr_results = pages[page_idx]
+            
+            # 4. Parse EasyOCR boxes into XML Elements
+            for idx, (bbox, text, confidence) in enumerate(ocr_results):
+                x_coords = [p[0] for p in bbox]
+                y_coords = [p[1] for p in bbox]
+                x_min, y_min = int(min(x_coords)), int(min(y_coords))
+                x_max, y_max = int(max(x_coords)), int(max(y_coords))
+                
+                bbox_str = f"bbox {x_min} {y_min} {x_max} {y_max}"
+                
+                carea = ET.SubElement(page_div, f"{{{XHTML_NS}}}p", attrib={"class": "ocr_carea", "id": f"block_1_{idx}", "title": bbox_str})
+                line = ET.SubElement(carea, f"{{{XHTML_NS}}}span", attrib={"class": "ocr_line", "id": f"line_1_{idx}", "title": bbox_str})
+                
+                word_title = f"{bbox_str}; x_wconf {int(confidence * 100)}"
+                word = ET.SubElement(line, f"{{{XHTML_NS}}}span", attrib={"class": "ocrx_word", "id": f"word_1_{idx}", "title": word_title})
+                word.text = text # Safe formatting automatically applied here
+            
+        # 5. Serialize to string
+        # We use indent() for human-readable pretty-printing (Python 3.9+)
+        try:
+            ET.indent(root, space="  ", level=0)
+        except AttributeError:
+            pass # Fallback for Python versions older than 3.9
+            
+        raw_xml = ET.tostring(root, encoding="utf-8", method="xml").decode("utf-8")
+        
+        # 6. Append Doctype manually since ElementTree serialization skips XHTML standard doctypes
+        doctype = '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://w3.org">\n'
+        xml_declaration = '<?xml version="1.0" encoding="UTF-8"?>\n'
+
+        with open(out_file+".hocr", "w") as f:
+            f.write(xml_declaration + doctype + raw_xml)
+
+
+    def write_page(self, in_files, out_file, pages):
+        
+        # 3. Setup PAGE XML Namespace (Latest stable schema url)
+        PAGE_NS = "http://primaresearch.org"
+        ET.register_namespace('', PAGE_NS)
+        
+        # Root Element: PcGts
+        root = ET.Element(f"{{{PAGE_NS}}}PcGts")
+        
+        # Metadata Block
+        metadata = ET.SubElement(root, f"{{{PAGE_NS}}}Metadata")
+        creator = ET.SubElement(metadata, f"{{{PAGE_NS}}}Creator")
+        creator.text = "EasyOCR to PAGE XML Converter"
+        created = ET.SubElement(metadata, f"{{{PAGE_NS}}}Created")
+        created.text = datetime.datetime.now().isoformat()
+        last_mod = ET.SubElement(metadata, f"{{{PAGE_NS}}}LastChange")
+        last_mod.text = datetime.datetime.now().isoformat()
+
+        for page_idx, image_path in enumerate(in_files):
+        
+            # Get metadata per image file
+            img_width, img_height = self.get_image_dimensions(image_path)
+        
+            # Page Element
+            page = ET.SubElement(root, f"{{{PAGE_NS}}}Page", attrib={
+                "imageFilename": image_path,
+                "imageWidth": str(img_width),
+                "imageHeight": str(img_height)
+            })
+
+            ocr_results = pages[page_idx]
+
+            # 4. Parse EasyOCR bounds into PAGE XML Regions
+            # Note: EasyOCR returns independent word/line fragments. We map each to a TextRegion
+            for idx, (bbox, text, confidence) in enumerate(ocr_results):
+                # Format the 4 corners into standard PAGE space-separated points: "x1,y1 x2,y2..."
+                points_str = " ".join([f"{int(pt[0])},{int(pt[1])}" for pt in bbox])
+                
+                # Create a layout text region
+                text_region = ET.SubElement(page, f"{{{PAGE_NS}}}TextRegion", attrib={
+                    "id": f"region_{idx}",
+                    "type": "paragraph"
+                })
+                
+                # Geometrical Boundary
+                coords_region = ET.SubElement(text_region, f"{{{PAGE_NS}}}Coords", attrib={"points": points_str})
+                
+                # Text Line hierarchy inside the region
+                text_line = ET.SubElement(text_region, f"{{{PAGE_NS}}}TextLine", attrib={"id": f"line_{idx}"})
+                coords_line = ET.SubElement(text_line, f"{{{PAGE_NS}}}Coords", attrib={"points": points_str})
+                
+                # Optional: Add Word-level tagging if you require strict ground-truth detail
+                word = ET.SubElement(text_line, f"{{{PAGE_NS}}}Word", attrib={"id": f"word_{idx}"})
+                coords_word = ET.SubElement(word, f"{{{PAGE_NS}}}Coords", attrib={"points": points_str})
+                
+                # Unicode Text Content assignment
+                text_equiv = ET.SubElement(word, f"{{{PAGE_NS}}}TextEquiv", attrib={"conf": f"{confidence:.4f}"})
+                unicode_val = ET.SubElement(text_equiv, f"{{{PAGE_NS}}}Unicode")
+                unicode_val.text = text
+                
+                # Bubble up TextEquiv to Line Level for consumer tool parsing
+                line_equiv = ET.SubElement(text_line, f"{{{PAGE_NS}}}TextEquiv", attrib={"conf": f"{confidence:.4f}"})
+                line_unicode = ET.SubElement(line_equiv, f"{{{PAGE_NS}}}Unicode")
+                line_unicode.text = text
+
+        # 5. Format and Serialize
+        try:
+            ET.indent(root, space="  ", level=0)
+        except AttributeError:
+            pass  # Fallback for Python versions older than 3.9
+            
+        raw_xml = ET.tostring(root, encoding="utf-8", method="xml").decode("utf-8")
+        xml_declaration = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+
+        with open(out_file+".page.xml", "w") as f:
+            f.write(xml_declaration + raw_xml)
+
+
+    def write_tsv(self, in_files, out_file, pages):
+        
+        # Define Tesseract TSV headers
+        headers = ["level", "page_num", "block_num", "par_num", "line_num", "word_num", "left", "top", "width", "height", "conf", "text"]
+
+        with open(out_file+".tsv", "w") as f:
+        
+            writer = csv.DictWriter(f, fieldnames=headers, delimiter='\t', lineterminator='\n')
+            
+            # Write the header row
+            writer.writeheader()
+
+            for page_idx, image_path in enumerate(in_files):
+
+                ocr_results = pages[page_idx]
+            
+                for idx, res in enumerate(ocr_results):
+                    bbox, text, conf = res
+                    
+                    # EasyOCR bbox format: [[tl_x, tl_y], [tr_x, tr_y], [br_x, br_y], [bl_x, bl_y]]
+                    tl_x, tl_y = int(bbox[0][0]), int(bbox[0][1])
+                    br_x, br_y = int(bbox[2][0]), int(bbox[2][1])
+                    
+                    # Calculate bounding box dimensions
+                    left = tl_x
+                    top = tl_y
+                    width = br_x - tl_x
+                    height = br_y - tl_y
+                    
+                    # Scale EasyOCR confidence (0.0 - 1.0) to Tesseract scale (0 - 100)
+                    tesseract_conf = int(conf * 100)
+                    
+                    # Map row data to the Tesseract schema
+                    row = {
+                        # 1=Page, 2=Block, 3=Paragraph, 4=Line, 5=Word
+                        # Tricky to know which level to set this to given
+                        # we sometime get single words and sometime multiple
+                        # words (especially if the paragraph option is set)
+                        "level": 5,
+                        "page_num": page_idx+1,
+
+                        # these all use the bounding box index which is
+                        # probably not correct, especially for the word number
+                        # but it does at least mean they increase as we work
+                        # through the page
+                        "block_num": idx + 1,
+                        "par_num": idx + 1,
+                        "line_num": idx + 1,
+                        "word_num": idx + 1,
+
+                        "left": left,
+                        "top": top,
+                        "width": width,
+                        "height": height,
+                        "conf": tesseract_conf,
+                        "text": text
+                    }
+
+                    writer.writerow(row)
 
 
 if __name__ == "__main__":
@@ -42,9 +414,17 @@ if __name__ == "__main__":
 
     parser.add_argument("--input", 
         action="append",
+        required=True,
         help="Image file to process")
+    
     parser.add_argument("--output",
-        help="JSON file to write text into")
+        required=True,
+        help="base filename to write to (extension will be added based on output format)")
+
+    parser.add_argument("--format",
+        action="append",
+        choices=['txt',"jsonl","alto","hocr","page","tsv"],
+        help="the output formats to write (if not specified JSONL will be produced)")
         
     parser.add_argument("--paragraphs", action="store_true",
         help="Group text into pragraphs (default is to treat each line separately)")
@@ -59,7 +439,11 @@ if __name__ == "__main__":
 
     client = EasyOCR(args);
 
-    with open(args.output, "w") as f:
-        for in_file in args.input:
-            result = client.process(in_file, args.output, paragraphs=args.paragraphs)
-            f.write(f"{json.dumps(result, default=int)}\n")
+    pages = [client.process(in_file) for in_file in args.input]
+
+    if args.format:
+        for f in args.format:
+            write_output = getattr(client, f"write_{f}")
+            write_output(args.input, args.output, pages)
+    else:
+        client.write_jsonl(args.input, args.output, pages)
