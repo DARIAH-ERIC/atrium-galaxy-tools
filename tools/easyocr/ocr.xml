@@ -7,14 +7,14 @@
   <version_command><![CDATA[echo "1.0.0"]]></version_command>
   <command><![CDATA[python
 '$__tool_directory__/ocr.py'
-#for $image in $images#
+#for $image in $images
 --input '$image'
 #end for
 --output output
 #if $paragraphs
 --paragraphs
 #end if
-#for $lang in $languages#
+#for $lang in $languages
 --lang '$lang'
 #end for
 #if $gpu
