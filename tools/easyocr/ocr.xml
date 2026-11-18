@@ -127,7 +127,7 @@
         <filter>'txt' in output_formats</filter>
     </data>
     <data name="output_jsonl" format="json" from_work_dir="output.jsonl" label="${tool.name} on ${on_string}: JSONL">
-        <filter>'json' in output_formats</filter>
+        <filter>'jsonl' in output_formats</filter>
     </data>
     <data name="output_hocr" format="html" from_work_dir="output.hocr" label="${tool.name} on ${on_string}: hOCR">
         <filter>'hocr' in output_formats</filter>
