@@ -1,4 +1,4 @@
-Workflow documentation template (work in progress)
+# Workflow documentation template (work in progress)
 
 - input file: [provide a direct stable URI to the file used, if possible]
   - language of text: [provide info about language of the text on the image as it's relevant for the language model]
